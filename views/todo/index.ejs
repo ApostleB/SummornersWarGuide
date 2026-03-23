@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <% 
+        const formatDate = (date) => {
+            if (!date) return '-';
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const day = d.getDate().toString().padStart(2, '0');
+            return `${year}.${month}.${day}`;
+        };
+    %>
+    <h2>📋 Plan Todo List</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Planned Date</th>
+                <th>진행율</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (todos && todos.length > 0) { %>
+                <% todos.forEach(todo => { %>
+                    <tr>
+                        <td><a href="/todo/<%= todo.planId %>"><%= todo.planTitle %></a></td>
+                        <td><%= formatDate(todo.planStartDt) %> ~ <%= formatDate(todo.planEndDt) %></td>
+                        <td><%= formatDate(todo.planCompleteDt) %></td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
+                <tr>
+                    <td colspan="5" style="text-align: center;">No todos found.</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+    <br>
+    <a href="/">Back to Home</a>
+</body>
+</html>
