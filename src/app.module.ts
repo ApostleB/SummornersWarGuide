@@ -1,10 +1,11 @@
-import { Module } from "@nestjs/common";
+import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { JwtModule } from "@nestjs/jwt";
 import { AppController } from "./app.controller";
-import { TodoModule } from "./modules/todo/todo.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { CodeModule } from "./modules/code/code.module";
 import { DatabaseModule } from "./common/database/database.module";
+import { AuthMiddleware } from "./common/middlewares/auth.middleware";
 
 @Module({
   imports: [
@@ -12,12 +13,16 @@ import { DatabaseModule } from "./common/database/database.module";
       isGlobal: true,
       envFilePath: ".env",
     }),
+    JwtModule.register({}),
     DatabaseModule,
-    TodoModule,
     AuthModule,
     CodeModule,
   ],
   controllers: [AppController],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthMiddleware).forRoutes("*");
+  }
+}

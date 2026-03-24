@@ -1,96 +1,102 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plan Detail - <%= plan ? plan.planTitle : 'Not Found' %></title>
+    <link rel="stylesheet" href="/css/common/layout.css">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <% 
-        const formatDate = (date) => {
-            if (!date) return '-';
-            const d = new Date(date);
-            const year = d.getFullYear();
-            const month = (d.getMonth() + 1).toString().padStart(2, '0');
-            const day = d.getDate().toString().padStart(2, '0');
-            return `${year}.${month}.${day}`;
-        };
-    %>
-    <% if (plan) { %>
-        <h2>🗓️ <%= plan.planTitle %></h2>
-        <p>Period: <%= formatDate(plan.planStartDt) %> ~ <%= formatDate(plan.planEndDt) %></p>
+    <%- include('../partials/header') %>
 
-        <% if (plan.sections && plan.sections.length > 0) { %>
-            <% plan.sections.forEach(section => { %>
-                <div class="section-container">
-                    <h3>📂 Section: <%= section.planSectionTitle %></h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Todo Title</th>
-                                <th>Content</th>
-                                <th>Planned Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% if (section.todos && section.todos.length > 0) { %>
-                                <% section.todos.forEach(todo => { %>
+    <main class="main-content">
+        <div style="padding: 20px;">
+            <%
+                const formatDate = (date) => {
+                    if (!date) return '-';
+                    const d = new Date(date);
+                    const year = d.getFullYear();
+                    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+                    const day = d.getDate().toString().padStart(2, '0');
+                    return `${year}.${month}.${day}`;
+                };
+            %>
+            <% if (plan) { %>
+                <h2><%= plan.planTitle %></h2>
+                <p>기간: <%= formatDate(plan.planStartDt) %> ~ <%= formatDate(plan.planEndDt) %></p>
+
+                <% if (plan.sections && plan.sections.length > 0) { %>
+                    <% plan.sections.forEach(section => { %>
+                        <div class="section-container">
+                            <h3>Section: <%= section.planSectionTitle %></h3>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Todo Title</th>
+                                        <th>Content</th>
+                                        <th>Planned Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (section.todos && section.todos.length > 0) { %>
+                                        <% section.todos.forEach(todo => { %>
+                                            <tr>
+                                                <td><%= todo.planTodoTitle %></td>
+                                                <td><%= todo.planTodoContent %></td>
+                                                <td><%= formatDate(todo.planTodoDt) %></td>
+                                                <td><%= todo.planCompleteDt ? '완료' : '진행중' %></td>
+                                            </tr>
+                                        <% }); %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="4" style="text-align: center;">등록된 항목이 없습니다.</td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <br>
+                    <% }); %>
+                <% } %>
+
+                <%
+                    const unsectionedTodos = plan.todos ? plan.todos.filter(t => !t.planTodoSectionId) : [];
+                    if (unsectionedTodos.length > 0) {
+                %>
+                    <div class="section-container">
+                        <h3>미분류 Todos</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Todo Title</th>
+                                    <th>Content</th>
+                                    <th>Planned Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% unsectionedTodos.forEach(todo => { %>
                                     <tr>
                                         <td><%= todo.planTodoTitle %></td>
                                         <td><%= todo.planTodoContent %></td>
                                         <td><%= formatDate(todo.planTodoDt) %></td>
-                                        <td><%= todo.planCompleteDt ? '✅ Completed' : '⏳ Pending' %></td>
+                                        <td><%= todo.planCompleteDt ? '완료' : '진행중' %></td>
                                     </tr>
                                 <% }); %>
-                            <% } else { %>
-                                <tr>
-                                    <td colspan="4" style="text-align: center;">No todos in this section.</td>
-                                </tr>
-                            <% } %>
-                        </tbody>
-                    </table>
-                </div>
-                <br>
-            <% }); %>
-        <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% } %>
 
-        <% 
-            // Also show todos that might not be in a section
-            const unsectionedTodos = plan.todos ? plan.todos.filter(t => !t.planTodoSectionId) : [];
-            if (unsectionedTodos.length > 0) {
-        %>
-            <div class="section-container">
-                <h3>📂 Uncategorized Todos</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Todo Title</th>
-                            <th>Content</th>
-                            <th>Planned Date</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% unsectionedTodos.forEach(todo => { %>
-                            <tr>
-                                <td><%= todo.planTodoTitle %></td>
-                                <td><%= todo.planTodoContent %></td>
-                                <td><%= formatDate(todo.planTodoDt) %></td>
-                                <td><%= todo.planCompleteDt ? '✅ Completed' : '⏳ Pending' %></td>
-                            </tr>
-                        <% }); %>
-                    </tbody>
-                </table>
-            </div>
-        <% } %>
+            <% } else { %>
+                <h2>Plan Not Found</h2>
+            <% } %>
 
-    <% } else { %>
-        <h2>Plan Not Found</h2>
-    <% } %>
-
-    <br>
-    <a href="/todo">Back to Todo List</a>
+            <br>
+            <a href="/todo">목록으로 돌아가기</a>
+        </div>
+    </main>
 </body>
 </html>

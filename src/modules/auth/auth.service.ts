@@ -239,7 +239,12 @@ export class AuthService {
   }
 
   private async generateTokens(member: Member) {
-    const payload = { sub: member.memberId, email: member.memberEmail };
+    const payload = {
+      sub: member.memberId,
+      email: member.memberEmail,
+      name: member.memberName,
+      level: member.memberLevel,
+    };
 
     const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>("JWT_SECRET"),
