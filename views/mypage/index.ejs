@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 - Summorners</title>
+    <link rel="stylesheet" href="/css/common/layout.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .mypage-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .user-info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .user-info-card h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            width: 100px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info-value {
+            flex: 1;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .no-auth-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .no-auth-message a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/header') %>
+
+    <main class="main-content">
+        <div class="mypage-container">
+            <% if (user) { %>
+                <div class="user-info-card">
+                    <h2>내 정보</h2>
+                    <div class="info-row">
+                        <span class="info-label">이메일</span>
+                        <span class="info-value"><%= user.email %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">이름</span>
+                        <span class="info-value"><%= user.name || '-' %></span>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="no-auth-message">
+                    <p>로그인이 필요합니다.</p>
+                    <p><a href="/auth/login">로그인하기</a></p>
+                </div>
+            <% } %>
+        </div>
+    </main>
+</body>
+</html>
