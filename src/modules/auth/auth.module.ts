@@ -22,7 +22,7 @@ import { DtlCd } from "../code/entities/dtl-cd.entity";
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>("JWT_SECRET"),
         signOptions: {
-          expiresIn: "15m",
+          expiresIn: "1h",
         },
       }),
     }),

@@ -4,6 +4,8 @@ import { JwtModule } from "@nestjs/jwt";
 import { AppController } from "./app.controller";
 import { AuthModule } from "./modules/auth/auth.module";
 import { CodeModule } from "./modules/code/code.module";
+import { GameModule } from "./modules/game/game.module";
+import { AdminModule } from "./modules/admin/admin.module";
 import { DatabaseModule } from "./common/database/database.module";
 import { AuthMiddleware } from "./common/middlewares/auth.middleware";
 
@@ -17,6 +19,8 @@ import { AuthMiddleware } from "./common/middlewares/auth.middleware";
     DatabaseModule,
     AuthModule,
     CodeModule,
+    GameModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [],

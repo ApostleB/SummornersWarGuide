@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>방어 덱 상세 정보</title>
+    <link rel="stylesheet" href="/css/common/layout.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .detail-container {
+            max-width: 720px; /* 화살표 공간 확보를 위해 너비 확장 */
+            margin: 0 auto;
+            padding: 20px 60px; /* 양옆 패딩 추가 */
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+
+        .back-link:hover {
+            transform: translateX(-4px);
+        }
+
+        .back-link::before {
+            content: '←';
+            margin-right: 8px;
+        }
+
+        .defence-info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin: 0 auto 24px auto;
+            max-width: 600px; /* 카드 최대 너비 고정 */
+        }
+
+        .section-label {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .monster-deck {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .monster-pill {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f8faff;
+            border: 1px solid #e8eeff;
+            border-radius: 8px;
+            padding: 10px 16px;
+            min-width: 100px;
+            flex: 1;
+        }
+
+        .monster-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .monster-type {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* Slider Styles */
+        .slider-wrapper {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .attack-slider-container {
+            position: relative;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            height: 400px; /* Fixed Height */
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .attack-deck-content {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease;
+            overflow: hidden;
+        }
+
+        .attack-deck-content.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .attack-monster-deck {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .attack-monster-pill {
+            background: #fff5f5;
+            border: 1px solid #ffe8e8;
+            border-radius: 6px;
+            padding: 8px 12px;
+            flex: 1;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #e53e3e;
+        }
+
+        .description-container {
+            flex: 1;
+            overflow-y: auto; /* Scrollable description */
+            padding-right: 4px;
+        }
+
+        /* Custom Scrollbar */
+        .description-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .description-container::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+
+        .deck-desc-box {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid #667eea;
+            color: #4a5568;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        /* Navigation Arrows */
+        .side-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            color: #4a5568;
+            font-size: 20px;
+            z-index: 10;
+        }
+
+        #prevArrow {
+            left: -54px;
+        }
+
+        #nextArrow {
+            right: -54px;
+        }
+
+        .side-arrow:hover:not(:disabled) {
+            background: #f8fafc;
+            border-color: #667eea;
+            color: #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .side-arrow:disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin: 24px auto 0 auto;
+            gap: 12px;
+            max-width: 600px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+            color: #2d3748;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .no-attack {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/header') %>
+
+    <main class="main-content">
+        <div class="detail-container">
+            <a href="/game/defence" class="back-link">목록으로 돌아가기</a>
+
+            <div id="defenceInfo">
+                <div class="loading-spinner">데이터를 불러오는 중...</div>
+            </div>
+
+            <div id="attackSlider" style="display: none;">
+                <div class="slider-wrapper">
+                    <button id="prevArrow" class="side-arrow" onclick="changePage(-1)">
+                        ‹
+                    </button>
+
+                    <div class="attack-slider-container">
+                        <div class="slider-header">
+                            <div class="section-label">공략 덱</div>
+                            <div class="pagination-info" id="paginationInfo">1 / 1</div>
+                        </div>
+                        
+                        <div id="attackDecksContainer" style="flex: 1; display: flex; flex-direction: column;">
+                            <!-- Attack decks will be injected here -->
+                        </div>
+                    </div>
+
+                    <button id="nextArrow" class="side-arrow" onclick="changePage(1)">
+                        ›
+                    </button>
+                </div>
+
+                <div class="nav-buttons">
+                    <button id="prevBtn" class="nav-btn" onclick="changePage(-1)">
+                        이전
+                    </button>
+                    <button id="nextBtn" class="nav-btn" onclick="changePage(1)">
+                        다음
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const defenceId = '<%= defenceId %>';
+        let attackList = [];
+        let currentIndex = 0;
+
+        async function fetchDetail() {
+            try {
+                const response = await fetch(`/api/game/defence/${defenceId}`);
+                const data = await response.json();
+                
+                if (data.defence) {
+                    renderDefenceInfo(data.defence);
+                    attackList = data.defence.attackList || [];
+                    
+                    if (attackList.length > 0) {
+                        document.getElementById('attackSlider').style.display = 'block';
+                        renderAttackDeck();
+                    } else {
+                        document.getElementById('attackDecksContainer').innerHTML = 
+                            '<div class="no-attack">등록된 공략 덱이 없습니다.</div>';
+                        document.getElementById('attackSlider').style.display = 'block';
+                        document.querySelector('.nav-buttons').style.display = 'none';
+                        document.getElementById('paginationInfo').style.display = 'none';
+                        document.getElementById('prevArrow').style.display = 'none';
+                        document.getElementById('nextArrow').style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch detail:', error);
+                document.getElementById('defenceInfo').innerHTML = 
+                    '<div class="no-results">데이터를 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        function renderDefenceInfo(defence) {
+            const container = document.getElementById('defenceInfo');
+            container.innerHTML = `
+                <div class="defence-info-card">
+                    <div class="section-label">방어 덱 정보</div>
+                    <div class="monster-deck">
+                        ${renderMonster(defence.defenceMonsterA)}
+                        ${renderMonster(defence.defenceMonsterB)}
+                        ${renderMonster(defence.defenceMonsterC)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMonster(monster) {
+            if (!monster) return '';
+            return `
+                <div class="monster-pill">
+                    <span class="monster-name">${monster.monsterName}</span>
+                    <span class="monster-type">${monster.monsterType || '-'}</span>
+                </div>
+            `;
+        }
+
+        function renderAttackDeck() {
+            const container = document.getElementById('attackDecksContainer');
+            const paginationInfo = document.getElementById('paginationInfo');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevArrow = document.getElementById('prevArrow');
+            const nextArrow = document.getElementById('nextArrow');
+
+            const currentDeck = attackList[currentIndex];
+            
+            container.innerHTML = `
+                <div class="attack-deck-content active">
+                    <div class="attack-monster-deck">
+                        ${renderAttackMonster(currentDeck.attackMonsterA)}
+                        ${renderAttackMonster(currentDeck.attackMonsterB)}
+                        ${renderAttackMonster(currentDeck.attackMonsterC)}
+                    </div>
+                    <div class="description-container">
+                        ${currentDeck.deckDesc ? `
+                            <div class="section-label">공략 설명</div>
+                            <div class="deck-desc-box">${currentDeck.deckDesc}</div>
+                        ` : '<div class="no-attack" style="padding: 20px;">설명이 없습니다.</div>'}
+                    </div>
+                </div>
+            `;
+
+            paginationInfo.textContent = `${currentIndex + 1} / ${attackList.length}`;
+            
+            const isFirst = currentIndex === 0;
+            const isLast = currentIndex === attackList.length - 1;
+
+            prevBtn.disabled = isFirst;
+            nextBtn.disabled = isLast;
+            prevArrow.disabled = isFirst;
+            nextArrow.disabled = isLast;
+        }
+
+        function renderAttackMonster(monster) {
+            if (!monster) return '';
+            return `<div class="attack-monster-pill">${monster.monsterName}</div>`;
+        }
+
+        function changePage(direction) {
+            const newIndex = currentIndex + direction;
+            if (newIndex >= 0 && newIndex < attackList.length) {
+                currentIndex = newIndex;
+                renderAttackDeck();
+            }
+        }
+
+        if (defenceId) {
+            fetchDetail();
+        } else {
+            document.getElementById('defenceInfo').innerHTML = 
+                '<div class="no-results">유효하지 않은 접근입니다.</div>';
+        }
+    </script>
+</body>
+</html>

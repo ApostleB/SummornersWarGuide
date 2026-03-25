@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>방어 덱 목록</title>
+    <link rel="stylesheet" href="/css/common/layout.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: flex;
+            gap: 8px;
+        }
+
+        .search-wrapper input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+
+        .search-wrapper input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-wrapper button {
+            padding: 0 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .search-wrapper button:hover {
+            background: #5a6fd6;
+        }
+
+        .suggestions-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 240px;
+            overflow-y: auto;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-top: 1px;
+        }
+
+        .suggestions-list.active {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover {
+            background: #f8faff;
+            color: #667eea;
+        }
+
+        .defence-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .defence-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /*padding-bottom: 16px;*/
+            /*border-bottom: 1px solid #f0f0f0;*/
+            flex-wrap: wrap;
+            gap: 16px;
+            cursor: pointer;
+        }
+
+        .attack-count {
+            font-size: 13px;
+            color: #666;
+            background: #f0f2f5;
+            padding: 4px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .monster-deck {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .monster-pill {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f8faff;
+            border: 1px solid #e8eeff;
+            border-radius: 8px;
+            padding: 4px 8px;
+            min-width: 90px;
+        }
+
+        .monster-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .monster-type {
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .attack-section {
+            margin-top: 20px;
+        }
+
+        .attack-section h4 {
+            margin: 0 0 16px 0;
+            font-size: 14px;
+            color: #777;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+
+        .attack-section h4::before {
+            content: '⚔️';
+            margin-right: 8px;
+            font-size: 12px;
+        }
+
+        .attack-deck-item {
+            background: #fafafa;
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .attack-deck-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .attack-monster-deck {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .attack-monster-name {
+            font-size: 13px;
+            background: #fff;
+            border: 1px solid #eee;
+            padding: 4px 10px;
+            border-radius: 4px;
+            color: #444;
+        }
+
+        .deck-desc {
+            font-size: 13px;
+            color: #666;
+            margin: 8px 0 0 0;
+            line-height: 1.5;
+            padding: 8px;
+            background: #fff;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/header') %>
+
+    <main class="main-content">
+        <div class="game-container">
+            <div class="search-card">
+                <div class="search-wrapper">
+                    <input type="text" id="searchInput" placeholder="몬스터 이름 검색..." autocomplete="off">
+                    <button id="searchBtn" type="button">검색</button>
+                    <div id="suggestions" class="suggestions-list"></div>
+                </div>
+            </div>
+
+            <div id="defenceList"></div>
+        </div>
+    </main>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const suggestionsEl = document.getElementById('suggestions');
+        const searchBtn = document.getElementById('searchBtn');
+        let debounceTimer;
+
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            const keyword = e.target.value.trim();
+
+            if (keyword.length >= 1) {
+                debounceTimer = setTimeout(() => fetchSuggestions(keyword), 200);
+            } else {
+                suggestionsEl.classList.remove('active');
+            }
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                suggestionsEl.classList.remove('active');
+                searchDefence();
+            }
+        });
+
+        searchBtn.addEventListener('click', () => {
+            suggestionsEl.classList.remove('active');
+            searchDefence();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-wrapper')) {
+                suggestionsEl.classList.remove('active');
+            }
+        });
+
+        async function fetchSuggestions(keyword) {
+            try {
+                const response = await fetch(`/api/game/monster/suggest?keyword=${encodeURIComponent(keyword)}`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                renderSuggestions(data.suggestions);
+            } catch (error) {
+                console.error('Failed to fetch suggestions:', error);
+            }
+        }
+
+        function renderSuggestions(suggestions) {
+            if (!suggestions || suggestions.length === 0) {
+                suggestionsEl.classList.remove('active');
+                return;
+            }
+
+            suggestionsEl.innerHTML = suggestions.map(name =>
+                `<div class="suggestion-item" data-name="${name}">${name}</div>`
+            ).join('');
+            suggestionsEl.classList.add('active');
+
+            suggestionsEl.querySelectorAll('.suggestion-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    searchInput.value = item.dataset.name;
+                    suggestionsEl.classList.remove('active');
+                    searchDefence();
+                });
+            });
+        }
+
+        function searchDefence() {
+            const keyword = searchInput.value.trim();
+            const url = keyword
+                ? `/game/defence?keyword=${encodeURIComponent(keyword)}`
+                : '/game/defence';
+            window.location.href = url;
+        }
+
+        async function fetchDefenceList() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const keyword = urlParams.get('keyword') || '';
+
+                if (keyword) {
+                    searchInput.value = keyword;
+                }
+
+                const apiUrl = keyword
+                    ? `/api/game/defence?keyword=${encodeURIComponent(keyword)}`
+                    : '/api/game/defence';
+
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                renderDefenceList(data.defenceList);
+            } catch (error) {
+                console.error('Failed to fetch defence list:', error);
+            }
+        }
+
+        function renderDefenceList(defenceList) {
+            const container = document.getElementById('defenceList');
+            if (!defenceList || defenceList.length === 0) {
+                container.innerHTML = '<div class="no-results">검색 결과가 없습니다.</div>';
+                return;
+            }
+
+            container.innerHTML = defenceList.map(defence => `
+                <div class="defence-card">
+                    <a href="/game/defence/detail?defenceId=${defence.defenceId}">
+                        <div class="card-header">
+                            <div class="monster-deck">
+                                ${renderMonster(defence.defenceMonsterA)}
+                                ${renderMonster(defence.defenceMonsterB)}
+                                ${renderMonster(defence.defenceMonsterC)}
+                            </div>
+                            <span class="attack-count">⚔ ${defence.attackList.length}</span>
+                        </div>
+                    </a>
+                </div>
+            `).join('');
+        }
+
+        function renderMonster(monster) {
+            if (!monster) return '';
+            return `
+                <div class="monster-pill">
+                    <span class="monster-name">${monster.monsterName}</span>
+                    <!-- <span class="monster-type">(${monster.monsterType})</span> -->
+                </div>
+            `;
+        }
+
+        function renderAttackMonster(monster) {
+            if (!monster) return '';
+            return `<span class="attack-monster-name">${monster.monsterName}</span>`;
+        }
+
+        fetchDefenceList();
+    </script>
+</body>
+</html>
