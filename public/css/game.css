@@ -1,0 +1,445 @@
+/* Game Common Styles */
+.game-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Search Card */
+.search-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+}
+
+.search-wrapper {
+    position: relative;
+    display: flex;
+    gap: 8px;
+}
+
+.search-wrapper input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.2s;
+}
+
+.search-wrapper input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.search-wrapper button {
+    padding: 0 24px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-wrapper button:hover {
+    background: #5a6fd6;
+}
+
+/* Suggestions List */
+.suggestions-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 240px;
+    overflow-y: auto;
+    display: none;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-top: 1px;
+}
+
+.suggestions-list.active {
+    display: block;
+}
+
+.suggestion-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background: #f8faff;
+    color: #667eea;
+}
+
+/* Defence Card */
+.defence-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.defence-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Card Header */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.attack-count {
+    font-size: 13px;
+    color: #666;
+    background: #f0f2f5;
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.detail-link {
+    font-size: 12px;
+    color: #667eea;
+    background: #eef0ff;
+    border: 1px solid #c7ceff;
+    border-radius: 6px;
+    padding: 3px 10px;
+    text-decoration: none;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+}
+
+.detail-link:hover {
+    background: #667eea;
+    color: white;
+}
+
+/* Monster Deck */
+.monster-deck {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.monster-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f8faff;
+    border: 1px solid #e8eeff;
+    border-radius: 8px;
+    padding: 4px 8px;
+    min-width: 90px;
+}
+
+.monster-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+}
+
+.monster-name.red{ color:#D80546; }
+.monster-name.blue{ color:#0300AA; }
+.monster-name.wind{ color:#E97300; }
+.monster-name.light{ color:#EFEADC; }
+.monster-name.dark{ color:#2E053E; }
+
+.monster-type-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.monster-type-icon-sm {
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.monster-type {
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
+}
+
+/* No Results */
+.no-results {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Accordion */
+.chevron {
+    font-size: 16px;
+    color: #aaa;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.defence-card.open .chevron {
+    transform: rotate(180deg);
+}
+
+.accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.3s ease;
+}
+
+.defence-card.open .accordion-body {
+    max-height: 800px;
+}
+
+.accordion-inner {
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 16px;
+}
+
+/* Attack Slider (inline) */
+.inline-slider-wrapper {
+    position: relative;
+}
+
+.inline-attack-slider {
+    background: #f8faff;
+    border: 1px solid #e8eeff;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+}
+
+.slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.section-label {
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.section-label::before {
+    content: '\2694';
+    font-size: 12px;
+}
+
+.pagination-info {
+    font-size: 13px;
+    color: #667eea;
+    font-weight: 600;
+}
+
+/* Attack Monster Deck */
+.attack-monster-deck {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.attack-monster-pill {
+    background: #fff5f5;
+    border: 1px solid #ffe8e8;
+    border-radius: 6px;
+    padding: 6px 12px;
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e53e3e;
+}
+
+/* Deck Description */
+.deck-desc-box {
+    background: #fff;
+    border-radius: 6px;
+    padding: 12px 14px;
+    border-left: 4px solid #667eea;
+    color: #4a5568;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.deck-desc-box::-webkit-scrollbar {
+    width: 4px;
+}
+
+.deck-desc-box::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 4px;
+}
+
+.no-desc {
+    color: #aaa;
+    font-size: 13px;
+    font-style: italic;
+}
+
+/* Slider Navigation */
+.slider-nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+}
+
+.slider-nav-btn {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a5568;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.slider-nav-btn:hover:not(:disabled) {
+    background: #f7fafc;
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.slider-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Inline States */
+.no-attack-inline {
+    text-align: center;
+    padding: 20px;
+    color: #a0aec0;
+    font-size: 13px;
+}
+
+.loading-inline {
+    text-align: center;
+    padding: 20px;
+    color: #667eea;
+    font-size: 13px;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.attack-deck-content {
+    animation: fadeIn 0.25s ease;
+}
+
+/* Attack List Container */
+.attack-list-container {
+    background: #f8faff;
+    border: 1px solid #e8eeff;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.attack-list-container .section-label {
+    margin-bottom: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #667eea;
+}
+
+.attack-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.attack-list-item {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    animation: fadeIn 0.25s ease;
+}
+
+.attack-item-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.attack-item-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.attack-list-item .attack-monster-deck {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.attack-list-item .deck-desc-box {
+    margin-top: 10px;
+    max-height: 80px;
+}
