@@ -128,6 +128,24 @@
             white-space: nowrap;
         }
 
+        .detail-link {
+            font-size: 12px;
+            color: #667eea;
+            background: #eef0ff;
+            border: 1px solid #c7ceff;
+            border-radius: 6px;
+            padding: 3px 10px;
+            text-decoration: none;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .detail-link:hover {
+            background: #667eea;
+            color: white;
+        }
+
         .monster-deck {
             display: flex;
             gap: 12px;
@@ -157,63 +175,6 @@
             margin-top: 2px;
         }
 
-        .attack-section {
-            margin-top: 20px;
-        }
-
-        .attack-section h4 {
-            margin: 0 0 16px 0;
-            font-size: 14px;
-            color: #777;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-        }
-
-        .attack-section h4::before {
-            content: '⚔️';
-            margin-right: 8px;
-            font-size: 12px;
-        }
-
-        .attack-deck-item {
-            background: #fafafa;
-            border: 1px solid #f0f0f0;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
-        }
-
-        .attack-deck-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .attack-monster-deck {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .attack-monster-name {
-            font-size: 13px;
-            background: #fff;
-            border: 1px solid #eee;
-            padding: 4px 10px;
-            border-radius: 4px;
-            color: #444;
-        }
-
-        .deck-desc {
-            font-size: 13px;
-            color: #666;
-            margin: 8px 0 0 0;
-            line-height: 1.5;
-            padding: 8px;
-            background: #fff;
-            border-radius: 4px;
-            border-left: 3px solid #667eea;
-        }
-
         .no-results {
             text-align: center;
             padding: 40px;
@@ -221,6 +182,176 @@
             background: white;
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        /* Accordion */
+        .card-header {
+            user-select: none;
+        }
+
+        .chevron {
+            font-size: 16px;
+            color: #aaa;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .defence-card.open .chevron {
+            transform: rotate(180deg);
+        }
+
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.3s ease;
+        }
+
+        .defence-card.open .accordion-body {
+            max-height: 800px;
+        }
+
+        .accordion-inner {
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 16px;
+        }
+
+        /* Attack Slider (inline) */
+        .inline-slider-wrapper {
+            position: relative;
+        }
+
+        .inline-attack-slider {
+            background: #f8faff;
+            border: 1px solid #e8eeff;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-label::before {
+            content: '⚔';
+            font-size: 12px;
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .attack-monster-deck {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .attack-monster-pill {
+            background: #fff5f5;
+            border: 1px solid #ffe8e8;
+            border-radius: 6px;
+            padding: 6px 12px;
+            flex: 1;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #e53e3e;
+        }
+
+        .deck-desc-box {
+            background: #fff;
+            border-radius: 6px;
+            padding: 12px 14px;
+            border-left: 4px solid #667eea;
+            color: #4a5568;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .deck-desc-box::-webkit-scrollbar { width: 4px; }
+        .deck-desc-box::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+
+        .no-desc {
+            color: #aaa;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        .slider-nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 16px;
+            gap: 8px;
+        }
+
+        .slider-nav-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .slider-nav-btn:hover:not(:disabled) {
+            background: #f7fafc;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .slider-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .no-attack-inline {
+            text-align: center;
+            padding: 20px;
+            color: #a0aec0;
+            font-size: 13px;
+        }
+
+        .loading-inline {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-size: 13px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .attack-deck-content {
+            animation: fadeIn 0.25s ease;
         }
     </style>
 </head>
@@ -340,6 +471,9 @@
             }
         }
 
+        // sliderState: defenceId → { attackList, currentIndex }
+        const sliderState = {};
+
         function renderDefenceList(defenceList) {
             const container = document.getElementById('defenceList');
             if (!defenceList || defenceList.length === 0) {
@@ -348,19 +482,114 @@
             }
 
             container.innerHTML = defenceList.map(defence => `
-                <div class="defence-card">
-                    <a href="/game/defence/detail?defenceId=${defence.defenceId}">
-                        <div class="card-header">
-                            <div class="monster-deck">
-                                ${renderMonster(defence.defenceMonsterA)}
-                                ${renderMonster(defence.defenceMonsterB)}
-                                ${renderMonster(defence.defenceMonsterC)}
-                            </div>
-                            <span class="attack-count">⚔ ${defence.attackList.length}</span>
+                <div class="defence-card" id="card-${defence.defenceId}" data-id="${defence.defenceId}">
+                    <div class="card-header" onclick="toggleAccordion('${defence.defenceId}')">
+                        <div class="monster-deck">
+                            ${renderMonster(defence.defenceMonsterA)}
+                            ${renderMonster(defence.defenceMonsterB)}
+                            ${renderMonster(defence.defenceMonsterC)}
                         </div>
-                    </a>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span class="attack-count">⚔ ${defence.attackList.length}</span>
+                            <a class="detail-link" href="/game/defence/detail?defenceId=${defence.defenceId}" onclick="event.stopPropagation()">이동</a>
+                            <span class="chevron">▼</span>
+                        </div>
+                    </div>
+                    <div class="accordion-body" id="body-${defence.defenceId}">
+                        <div class="accordion-inner" id="inner-${defence.defenceId}">
+                            <div class="loading-inline">불러오는 중...</div>
+                        </div>
+                    </div>
                 </div>
             `).join('');
+        }
+
+        async function toggleAccordion(defenceId) {
+            const card = document.getElementById(`card-${defenceId}`);
+            const body = document.getElementById(`body-${defenceId}`);
+            const isOpen = card.classList.contains('open');
+
+            // 모든 카드 닫기
+            document.querySelectorAll('.defence-card.open').forEach(c => {
+                c.classList.remove('open');
+                document.getElementById(`body-${c.dataset.id}`).style.maxHeight = null;
+            });
+
+            if (isOpen) return;
+
+            card.classList.add('open');
+            body.style.maxHeight = body.scrollHeight + 'px';
+
+            // 이미 로드된 경우 스킵
+            if (sliderState[defenceId]) {
+                renderInlineSlider(defenceId);
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/game/defence/${defenceId}`, { credentials: 'include' });
+                const data = await response.json();
+                const attackList = data.defence ? (data.defence.attackList || []) : [];
+                sliderState[defenceId] = { attackList, currentIndex: 0 };
+                renderInlineSlider(defenceId);
+                // 높이 재조정
+                body.style.maxHeight = body.scrollHeight + 'px';
+            } catch (e) {
+                document.getElementById(`inner-${defenceId}`).innerHTML =
+                    '<div class="no-attack-inline">데이터를 불러오지 못했습니다.</div>';
+            }
+        }
+
+        function renderInlineSlider(defenceId) {
+            const inner = document.getElementById(`inner-${defenceId}`);
+            const state = sliderState[defenceId];
+            const { attackList, currentIndex } = state;
+
+            if (!attackList || attackList.length === 0) {
+                inner.innerHTML = '<div class="no-attack-inline">등록된 공략 덱이 없습니다.</div>';
+                return;
+            }
+
+            const deck = attackList[currentIndex];
+            const isFirst = currentIndex === 0;
+            const isLast = currentIndex === attackList.length - 1;
+
+            inner.innerHTML = `
+                <div class="inline-attack-slider">
+                    <div class="slider-header">
+                        <div class="section-label">공략 덱</div>
+                        <div class="pagination-info">${currentIndex + 1} / ${attackList.length}</div>
+                    </div>
+                    <div class="attack-deck-content">
+                        <div class="attack-monster-deck">
+                            ${renderAttackMonsterPill(deck.attackMonsterA)}
+                            ${renderAttackMonsterPill(deck.attackMonsterB)}
+                            ${renderAttackMonsterPill(deck.attackMonsterC)}
+                        </div>
+                        ${deck.deckDesc
+                            ? `<div class="deck-desc-box">${deck.deckDesc}</div>`
+                            : '<div class="no-desc">설명이 없습니다.</div>'
+                        }
+                    </div>
+                    <div class="slider-nav-buttons">
+                        <button class="slider-nav-btn" onclick="changeSliderPage('${defenceId}', -1)" ${isFirst ? 'disabled' : ''}>이전</button>
+                        <button class="slider-nav-btn" onclick="changeSliderPage('${defenceId}', 1)" ${isLast ? 'disabled' : ''}>다음</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function changeSliderPage(defenceId, direction) {
+            const state = sliderState[defenceId];
+            if (!state) return;
+            const newIndex = state.currentIndex + direction;
+            if (newIndex >= 0 && newIndex < state.attackList.length) {
+                state.currentIndex = newIndex;
+                renderInlineSlider(defenceId);
+                // 높이 재조정
+                const body = document.getElementById(`body-${defenceId}`);
+                body.style.maxHeight = body.scrollHeight + 'px';
+            }
         }
 
         function renderMonster(monster) {
@@ -368,14 +597,13 @@
             return `
                 <div class="monster-pill">
                     <span class="monster-name">${monster.monsterName}</span>
-                    <!-- <span class="monster-type">(${monster.monsterType})</span> -->
                 </div>
             `;
         }
 
-        function renderAttackMonster(monster) {
+        function renderAttackMonsterPill(monster) {
             if (!monster) return '';
-            return `<span class="attack-monster-name">${monster.monsterName}</span>`;
+            return `<div class="attack-monster-pill">${monster.monsterName}</div>`;
         }
 
         fetchDefenceList();

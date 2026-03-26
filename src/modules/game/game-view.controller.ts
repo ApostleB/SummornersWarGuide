@@ -1,7 +1,6 @@
 import { Controller, Get, Render, Req, UseGuards } from "@nestjs/common";
 import { Request } from "express";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { RolesGuard } from "../auth/guards/roles.guard";
 
 @UseGuards(JwtAuthGuard)
 @Controller("game")
@@ -19,7 +18,6 @@ export class GameViewController {
     return { user: req.user || null, defenceId };
   }
 
-  @UseGuards(RolesGuard)
   @Get("monster")
   @Render("game/monster")
   monsterList(@Req() req: Request) {

@@ -9,7 +9,10 @@ import { Monster } from "./entities/monster.entity";
 import { AttackDeck } from "./entities/attack.entity";
 
 @Module({
-  imports: [AuthModule, TypeOrmModule.forFeature([DefenceDeck, Monster, AttackDeck])],
+  imports: [
+    AuthModule,
+    TypeOrmModule.forFeature([DefenceDeck, Monster, AttackDeck]),
+  ],
   controllers: [GameController, GameViewController],
   providers: [GameService],
   exports: [GameService],
