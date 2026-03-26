@@ -2,4 +2,6 @@ node_modules/
 dist/
 .idea
 .env
-Context/plan.md
+Context/*.md
+*.sql
+
