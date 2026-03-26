@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
+    <title>관리자 - 덱 관리</title>
+    <link rel="stylesheet" href="/public/css/common/layout.css">
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/admin.css">
+</head>
+<body>
+<%- include('../partials/header') %>
+
+<main class="main-content">
+    <div class="admin-container">
+        <div class="page-header">
+            <h1 class="page-title">덱 관리</h1>
+            <button id="uploadSheet" class="fileBtn uploadExcel" type="button">업로드</button>
+            <button id="downloadSheet" class="fileBtn downloadExcel" type="button">다운로드</button>
+        </div>
+    </div>
+
+    <div id="defenceList"></div>
+</main>
+</body>
+</html>

@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
     <title><%= title %></title>
-    <link rel="stylesheet" href="/css/common/layout.css">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/public/css/common/layout.css">
+    <link rel="stylesheet" href="/public/css/style.css">
 </head>
 <body>
     <%- include('partials/header') %>
@@ -13,8 +14,12 @@
         <div style="padding: 20px;">
             <h1>메인 페이지</h1>
             <p>서머너즈 길드원 가이드에 오신 것을 환영합니다.</p>
-            <p><%= user?.level %></p>
         </div>
     </main>
 </body>
 </html>
+<script>
+    <% if (user) { %>
+        // location.href="/game/defence";
+    <% } %>
+</script>

@@ -1,7 +1,8 @@
 <header class="header">
     <div class="header-inner">
+
         <a href="/" class="logo">
-            SW Helper
+            <img src="/public/image/logo.webp" alt="SW Helper">
         </a>
         <div class="search-container">
             <input type="text" class="search-input" placeholder="검색어를 입력하세요">
@@ -23,36 +24,64 @@
 <div class="menu-overlay" id="menuOverlay"></div>
 
 <nav class="side-menu" id="sideMenu">
-    <ul class="menu-list">
-        <% if (user) { %>
+    <!-- 일반 메뉴 -->
+    <div class="menu-wrapper" id="normalMenu">
+        <ul class="menu-list">
+            <% if (user?.level === 99) { %>
+                <li class="menu-item">
+                    <a href="/admin" class="menu-link">관리자 모드</a>
+                </li>
+                <li class="menu-item menu-divider"></li>
+            <% } %>
+            <% if (user) { %>
+                <li class="menu-item">
+                    <a href="/mypage" class="menu-link">마이페이지</a>
+                </li>
+            <% } %>
             <li class="menu-item">
-                <a href="/mypage" class="menu-link">마이페이지</a>
+                <a href="/game" class="menu-link">방덱 리스트</a>
             </li>
-        <% } %>
-        <li class="menu-item">
-            <a href="/" class="menu-link">홈</a>
-        </li>
-        <li class="menu-item">
-            <a href="/game" class="menu-link">방덱</a>
-        </li>
-        <li class="menu-item">
-            <a href="/game/monster#" class="menu-link">몬스터</a>
-        </li>
-        <% if (user?.level === 99) { %>
             <li class="menu-item">
-                <a href="/admin" class="menu-link">관리자 페이지</a>
+                <a href="/game/monster" class="menu-link">몬스터</a>
             </li>
-        <% } %>
-        <%if (user) { %>
+        </ul>
+        <ul class="menu-list menu-bottom">
+            <% if (user) { %>
+                <li class="menu-item">
+                    <a href="/api/auth/logout" class="menu-link logout-link">로그아웃</a>
+                </li>
+            <% } else { %>
+                <li class="menu-item">
+                    <a href="/auth/login" class="menu-link login-link">로그인</a>
+                </li>
+            <% } %>
+        </ul>
+    </div>
+
+    <!-- 관리자 메뉴 -->
+    <div class="menu-wrapper" id="adminMenu" style="display:none;">
+        <ul class="menu-list">
             <li class="menu-item">
-                <a href="/api/auth/logout" class="menu-link logout-link">로그아웃</a>
+                <a href="/" class="menu-link">사용자 모드</a>
             </li>
-        <% } else { %>
+            <li class="menu-item menu-divider"></li>
             <li class="menu-item">
-                <a href="/auth/login" class="menu-link">로그인</a>
+                <a href="/admin" class="menu-link">대시보드</a>
             </li>
-        <% } %>
-    </ul>
+            <li class="menu-item">
+                <a href="/admin/member" class="menu-link">회원관리</a>
+            </li>
+            <li class="menu-item">
+                <a href="/admin/code" class="menu-link">코드관리</a>
+            </li>
+            <li class="menu-item">
+                <a href="/admin/monster" class="menu-link">몬스터관리</a>
+            </li>
+            <li class="menu-item">
+                <a href="/admin/defence" class="menu-link">방덱관리</a>
+            </li>
+        </ul>
+    </div>
 </nav>
 
 <script>
@@ -60,6 +89,15 @@
     const menuToggle = document.getElementById('menuToggle');
     const sideMenu = document.getElementById('sideMenu');
     const menuOverlay = document.getElementById('menuOverlay');
+    const normalMenu = document.getElementById('normalMenu');
+    const adminMenu = document.getElementById('adminMenu');
+
+    // /admin 경로인 경우 관리자 메뉴 표시
+    const isAdminPage = window.location.pathname.startsWith('/admin');
+    if (isAdminPage) {
+        normalMenu.style.display = 'none';
+        adminMenu.style.display = 'block';
+    }
 
     function toggleMenu() {
         menuToggle.classList.toggle('active');

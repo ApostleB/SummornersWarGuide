@@ -5,6 +5,25 @@
     padding: 20px;
 }
 
+/* Page Header */
+.page-header {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 8px 0;
+}
+
+.page-desc {
+    font-size: 14px;
+    color: #718096;
+    margin: 0;
+}
+
 /* Search Card */
 .search-card {
     background: white;
@@ -168,7 +187,7 @@
 .monster-name.red{ color:#D80546; }
 .monster-name.blue{ color:#0300AA; }
 .monster-name.wind{ color:#E97300; }
-.monster-name.light{ color:#EFEADC; }
+.monster-name.light{ color:#B8860B; }
 .monster-name.dark{ color:#2E053E; }
 
 .monster-type-icon {

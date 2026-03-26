@@ -12,4 +12,19 @@ export class AdminViewController {
   adminIndex(@Req() req: Request) {
     return { user: req.user || null };
   }
+  @Get("member")
+  @Render("admin/member")
+  adminMember(@Req() req: Request) {
+    return { user: req.user || null };
+  }
+  @Get("defence")
+  @Render("admin/defence")
+  adminDefence(@Req() req: Request) {
+    return { user: req.user || null };
+  }
+  @Get("monster")
+  @Render("admin/monster")
+  adminMonster(@Req() req: Request) {
+    return { user: req.user || null };
+  }
 }

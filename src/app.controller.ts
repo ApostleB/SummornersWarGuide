@@ -1,14 +1,15 @@
-import {Controller, Get, Render, Req, Res} from "@nestjs/common";
-import { Request } from "express";
+import { Controller, Get, Render, Req, Res } from "@nestjs/common";
+import { Request, Response } from "express";
 
 @Controller()
 export class AppController {
   @Get()
-  @Render("index")
-  async main(@Req() req: Request, @Res() res: Response) {
-    if (req.user === undefined) {
-      console.log("Main Page Not Login");
-    }
-    return { title: "서머너즈 워 가이드", user: req.user || null };
+  main(@Req() req: Request, @Res() res: Response) {
+    const renderPage = req.user ? "index" : "auth/login";
+
+    return res.render(renderPage, {
+      title: "서머너즈 워 가이드",
+      user: req.user || null,
+    });
   }
 }

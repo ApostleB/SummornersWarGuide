@@ -1,0 +1,45 @@
+/* Admin Common Styles */
+.admin-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+
+/* Page Header */
+.page-header {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 8px 0;
+}
+
+.page-desc {
+    font-size: 14px;
+    color: #718096;
+    margin: 0;
+}
+
+.fileBtn{
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    color: white;
+    border: none;
+    transition: background 0.2s;
+}
+
+.fileBtn.uploadExcel {
+    background: #667eea;
+}
+
+.fileBtn.downloadExcel {
+    background: #D80546;
+}
+

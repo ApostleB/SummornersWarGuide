@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
     <title>방어 덱 상세 정보</title>
-    <link rel="stylesheet" href="/css/common/layout.css">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/public/css/common/layout.css">
+    <link rel="stylesheet" href="/public/css/style.css">
     <style>
         .detail-container {
             max-width: 720px; /* 화살표 공간 확보를 위해 너비 확장 */
@@ -293,7 +294,7 @@
                             <div class="section-label">공략 덱</div>
                             <div class="pagination-info" id="paginationInfo">1 / 1</div>
                         </div>
-                        
+
                         <div id="attackDecksContainer" style="flex: 1; display: flex; flex-direction: column;">
                             <!-- Attack decks will be injected here -->
                         </div>
@@ -325,16 +326,16 @@
             try {
                 const response = await fetch(`/api/game/defence/${defenceId}`);
                 const data = await response.json();
-                
+
                 if (data.defence) {
                     renderDefenceInfo(data.defence);
                     attackList = data.defence.attackList || [];
-                    
+
                     if (attackList.length > 0) {
                         document.getElementById('attackSlider').style.display = 'block';
                         renderAttackDeck();
                     } else {
-                        document.getElementById('attackDecksContainer').innerHTML = 
+                        document.getElementById('attackDecksContainer').innerHTML =
                             '<div class="no-attack">등록된 공략 덱이 없습니다.</div>';
                         document.getElementById('attackSlider').style.display = 'block';
                         document.querySelector('.nav-buttons').style.display = 'none';
@@ -345,7 +346,7 @@
                 }
             } catch (error) {
                 console.error('Failed to fetch detail:', error);
-                document.getElementById('defenceInfo').innerHTML = 
+                document.getElementById('defenceInfo').innerHTML =
                     '<div class="no-results">데이터를 불러오는데 실패했습니다.</div>';
             }
         }
@@ -383,7 +384,7 @@
             const nextArrow = document.getElementById('nextArrow');
 
             const currentDeck = attackList[currentIndex];
-            
+
             container.innerHTML = `
                 <div class="attack-deck-content active">
                     <div class="attack-monster-deck">
@@ -401,7 +402,7 @@
             `;
 
             paginationInfo.textContent = `${currentIndex + 1} / ${attackList.length}`;
-            
+
             const isFirst = currentIndex === 0;
             const isLast = currentIndex === attackList.length - 1;
 
@@ -427,7 +428,7 @@
         if (defenceId) {
             fetchDetail();
         } else {
-            document.getElementById('defenceInfo').innerHTML = 
+            document.getElementById('defenceInfo').innerHTML =
                 '<div class="no-results">유효하지 않은 접근입니다.</div>';
         }
     </script>

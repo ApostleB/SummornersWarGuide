@@ -3,16 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
     <title>방어 덱 목록</title>
-    <link rel="stylesheet" href="/css/common/layout.css">
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/game.css">
+    <link rel="stylesheet" href="/public/css/common/layout.css">
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/game.css">
 </head>
 <body>
     <%- include('../partials/header') %>
 
     <main class="main-content">
         <div class="game-container">
+            <div class="page-header">
+                <h1 class="page-title">방어 덱 목록</h1>
+                <p class="page-desc">몬스터 이름으로 검색하여 방어 덱과 공략 정보를 확인하세요</p>
+            </div>
             <div class="search-card">
                 <div class="search-wrapper">
                     <input type="text" id="searchInput" placeholder="몬스터 이름 검색..." autocomplete="off">
@@ -231,7 +236,7 @@
         function renderMonster(monster) {
             if (!monster) return '';
             const typeIcon = monster.typeImg
-                ? `<img class="monster-type-icon" src="/image/${monster.typeImg}" alt="${monster.typeName || ''}">`
+                ? `<img class="monster-type-icon" src="/public/image/${monster.typeImg}" alt="${monster.typeName || ''}">`
                 : '';
 
             return `
@@ -244,7 +249,7 @@
         function renderAttackMonsterPill(monster) {
             if (!monster) return '';
             const typeIcon = monster.typeImg
-                ? `<img class="monster-type-icon-sm" src="/image/${monster.typeImg}" alt="${monster.typeName || ''}">`
+                ? `<img class="monster-type-icon-sm" src="/public/image/${monster.typeImg}" alt="${monster.typeName || ''}">`
                 : '';
             return `<div class="attack-monster-pill">${typeIcon}${monster.monsterName}</div>`;
         }
