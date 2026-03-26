@@ -7,7 +7,7 @@ export class AppController {
   @Render("index")
   async main(@Req() req: Request, @Res() res: Response) {
     if (req.user === undefined) {
-      console.log("로그인 안함");
+      console.log("Main Page Not Login");
     }
     return { title: "서머너즈 워 가이드", user: req.user || null };
   }

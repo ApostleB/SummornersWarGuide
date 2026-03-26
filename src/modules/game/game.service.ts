@@ -3,15 +3,65 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { DefenceDeck } from "./entities/defence.entity";
 import { Monster } from "./entities/monster.entity";
+import { DtlCd } from "../code/entities/dtl-cd.entity";
+
+interface MonsterTypeInfo {
+  typeName: string;
+  typeColor: string;
+  typeImg: string;
+}
 
 @Injectable()
 export class GameService {
+  private monsterTypeCache: Map<string, MonsterTypeInfo> = new Map();
+
   constructor(
     @InjectRepository(DefenceDeck)
     private defenceDeckRepository: Repository<DefenceDeck>,
     @InjectRepository(Monster)
     private monsterRepository: Repository<Monster>,
+    @InjectRepository(DtlCd)
+    private dtlCdRepository: Repository<DtlCd>,
   ) {}
+
+  private async getMonsterTypeInfo(monsterType: string): Promise<MonsterTypeInfo | null> {
+    if (!monsterType) return null;
+
+    if (this.monsterTypeCache.has(monsterType)) {
+      return this.monsterTypeCache.get(monsterType);
+    }
+
+    const dtlCd = await this.dtlCdRepository.findOne({
+      where: { code: monsterType, grpCd: "MONSTER_CODE" },
+    });
+
+    if (dtlCd) {
+      const typeInfo: MonsterTypeInfo = {
+        typeName: dtlCd.codeTitle,
+        typeColor: dtlCd.codeValue,
+        typeImg: dtlCd.codeAttr1,
+      };
+      this.monsterTypeCache.set(monsterType, typeInfo);
+      return typeInfo;
+    }
+
+    return null;
+  }
+
+  private async mapMonsterWithType(monster: Monster) {
+    if (!monster) return null;
+
+    const typeInfo = await this.getMonsterTypeInfo(monster.monsterType);
+
+    return {
+      monsterName: monster.monsterName,
+      monsterType: monster.monsterType,
+      monsterDesc: monster.monsterDesc,
+      typeName: typeInfo?.typeName || null,
+      typeColor: typeInfo?.typeColor || null,
+      typeImg: typeInfo?.typeImg || null,
+    };
+  }
 
   async getDefenceList(searchKeyword?: string) {
     const queryBuilder = this.defenceDeckRepository
@@ -27,63 +77,31 @@ export class GameService {
     if (searchKeyword) {
       queryBuilder.where(
         "monsterA.monsterName LIKE :keyword OR monsterB.monsterName LIKE :keyword OR monsterC.monsterName LIKE :keyword",
-        { keyword: `${searchKeyword}%` },
+        { keyword: `%${searchKeyword}%` },
       );
     }
 
     const defenceList = await queryBuilder.getMany();
-    console.log(defenceList);
 
-    return defenceList.map((defence) => ({
-      defenceId: defence.defenceId,
-      defenceMonsterA: defence.monsterA
-        ? {
-            monsterName: defence.monsterA.monsterName,
-            monsterType: defence.monsterA.monsterType,
-            monsterDesc: defence.monsterA.monsterDesc,
-          }
-        : null,
-      defenceMonsterB: defence.monsterB
-        ? {
-            monsterName: defence.monsterB.monsterName,
-            monsterType: defence.monsterB.monsterType,
-            monsterDesc: defence.monsterB.monsterDesc,
-          }
-        : null,
-      defenceMonsterC: defence.monsterC
-        ? {
-            monsterName: defence.monsterC.monsterName,
-            monsterType: defence.monsterC.monsterType,
-            monsterDesc: defence.monsterC.monsterDesc,
-          }
-        : null,
-      attackList:
-        defence.attackList?.map((attack) => ({
-          attackId: attack.attackId,
-          attackMonsterA: attack.monsterA
-            ? {
-                monsterName: attack.monsterA.monsterName,
-                monsterType: attack.monsterA.monsterType,
-                monsterDesc: attack.monsterA.monsterDesc,
-              }
-            : null,
-          attackMonsterB: attack.monsterB
-            ? {
-                monsterName: attack.monsterB.monsterName,
-                monsterType: attack.monsterB.monsterType,
-                monsterDesc: attack.monsterB.monsterDesc,
-              }
-            : null,
-          attackMonsterC: attack.monsterC
-            ? {
-                monsterName: attack.monsterC.monsterName,
-                monsterType: attack.monsterC.monsterType,
-                monsterDesc: attack.monsterC.monsterDesc,
-              }
-            : null,
-          deckDesc: attack.deckDesc,
-        })) || [],
-    }));
+    const result = await Promise.all(
+      defenceList.map(async (defence) => ({
+        defenceId: defence.defenceId,
+        defenceMonsterA: await this.mapMonsterWithType(defence.monsterA),
+        defenceMonsterB: await this.mapMonsterWithType(defence.monsterB),
+        defenceMonsterC: await this.mapMonsterWithType(defence.monsterC),
+        attackList: await Promise.all(
+          (defence.attackList || []).map(async (attack) => ({
+            attackId: attack.attackId,
+            attackMonsterA: await this.mapMonsterWithType(attack.monsterA),
+            attackMonsterB: await this.mapMonsterWithType(attack.monsterB),
+            attackMonsterC: await this.mapMonsterWithType(attack.monsterC),
+            deckDesc: attack.deckDesc,
+          })),
+        ),
+      })),
+    );
+
+    return result;
   }
 
   async getDefenceDetail(defenceId: string) {
@@ -105,53 +123,18 @@ export class GameService {
 
     return {
       defenceId: defence.defenceId,
-      defenceMonsterA: defence.monsterA
-        ? {
-            monsterName: defence.monsterA.monsterName,
-            monsterType: defence.monsterA.monsterType,
-            monsterDesc: defence.monsterA.monsterDesc,
-          }
-        : null,
-      defenceMonsterB: defence.monsterB
-        ? {
-            monsterName: defence.monsterB.monsterName,
-            monsterType: defence.monsterB.monsterType,
-            monsterDesc: defence.monsterB.monsterDesc,
-          }
-        : null,
-      defenceMonsterC: defence.monsterC
-        ? {
-            monsterName: defence.monsterC.monsterName,
-            monsterType: defence.monsterC.monsterType,
-            monsterDesc: defence.monsterC.monsterDesc,
-          }
-        : null,
-      attackList:
-        defence.attackList?.map((attack) => ({
+      defenceMonsterA: await this.mapMonsterWithType(defence.monsterA),
+      defenceMonsterB: await this.mapMonsterWithType(defence.monsterB),
+      defenceMonsterC: await this.mapMonsterWithType(defence.monsterC),
+      attackList: await Promise.all(
+        (defence.attackList || []).map(async (attack) => ({
           attackId: attack.attackId,
-          attackMonsterA: attack.monsterA
-            ? {
-                monsterName: attack.monsterA.monsterName,
-                monsterType: attack.monsterA.monsterType,
-                monsterDesc: attack.monsterA.monsterDesc,
-              }
-            : null,
-          attackMonsterB: attack.monsterB
-            ? {
-                monsterName: attack.monsterB.monsterName,
-                monsterType: attack.monsterB.monsterType,
-                monsterDesc: attack.monsterB.monsterDesc,
-              }
-            : null,
-          attackMonsterC: attack.monsterC
-            ? {
-                monsterName: attack.monsterC.monsterName,
-                monsterType: attack.monsterC.monsterType,
-                monsterDesc: attack.monsterC.monsterDesc,
-              }
-            : null,
+          attackMonsterA: await this.mapMonsterWithType(attack.monsterA),
+          attackMonsterB: await this.mapMonsterWithType(attack.monsterB),
+          attackMonsterC: await this.mapMonsterWithType(attack.monsterC),
           deckDesc: attack.deckDesc,
-        })) || [],
+        })),
+      ),
     };
   }
 
