@@ -200,7 +200,12 @@ export class AuthService {
 
       // 새 access token 발급
       const newAccessToken = this.jwtService.sign(
-        { sub: member.memberId, email: member.memberEmail },
+        {
+          sub: member.memberId,
+          email: member.memberEmail,
+          name: member.memberName,
+          level: member.memberLevel,
+        },
         {
           secret: this.configService.get<string>("JWT_SECRET"),
           expiresIn: "1h",
