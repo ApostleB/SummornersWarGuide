@@ -18,100 +18,15 @@
                 <h1 class="page-title">방어 덱 목록</h1>
                 <p class="page-desc">몬스터 이름으로 검색하여 방어 덱과 공략 정보를 확인하세요</p>
             </div>
-            <div class="search-card">
-                <div class="search-wrapper">
-                    <input type="text" id="searchInput" placeholder="몬스터 이름 검색..." autocomplete="off">
-                    <button id="searchBtn" type="button">검색</button>
-                    <div id="suggestions" class="suggestions-list"></div>
-                </div>
-            </div>
             <div id="defenceList"></div>
         </div>
     </main>
 
     <script>
-        const searchInput = document.getElementById('searchInput');
-        const suggestionsEl = document.getElementById('suggestions');
-        const searchBtn = document.getElementById('searchBtn');
-        let debounceTimer;
-
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(debounceTimer);
-            const keyword = e.target.value.trim();
-
-            if (keyword.length >= 1) {
-                debounceTimer = setTimeout(() => fetchSuggestions(keyword), 200);
-            } else {
-                suggestionsEl.classList.remove('active');
-            }
-        });
-
-        searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                suggestionsEl.classList.remove('active');
-                searchDefence();
-            }
-        });
-
-        searchBtn.addEventListener('click', () => {
-            suggestionsEl.classList.remove('active');
-            searchDefence();
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.search-wrapper')) {
-                suggestionsEl.classList.remove('active');
-            }
-        });
-
-        async function fetchSuggestions(keyword) {
-            try {
-                const response = await fetch(`/api/game/monster/suggest?keyword=${encodeURIComponent(keyword)}`, {
-                    credentials: 'include'
-                });
-                const data = await response.json();
-                renderSuggestions(data.suggestions);
-            } catch (error) {
-                console.error('Failed to fetch suggestions:', error);
-            }
-        }
-
-        function renderSuggestions(suggestions) {
-            if (!suggestions || suggestions.length === 0) {
-                suggestionsEl.classList.remove('active');
-                return;
-            }
-
-            suggestionsEl.innerHTML = suggestions.map(name =>
-                `<div class="suggestion-item" data-name="${name}">${name}</div>`
-            ).join('');
-            suggestionsEl.classList.add('active');
-
-            suggestionsEl.querySelectorAll('.suggestion-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    searchInput.value = item.dataset.name;
-                    suggestionsEl.classList.remove('active');
-                    searchDefence();
-                });
-            });
-        }
-
-        function searchDefence() {
-            const keyword = searchInput.value.trim();
-            const url = keyword
-                ? `/game/defence?keyword=${encodeURIComponent(keyword)}`
-                : '/game/defence';
-            window.location.href = url;
-        }
-
         async function fetchDefenceList() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
                 const keyword = urlParams.get('keyword') || '';
-
-                if (keyword) {
-                    searchInput.value = keyword;
-                }
 
                 const apiUrl = keyword
                     ? `/api/game/defence?keyword=${encodeURIComponent(keyword)}`

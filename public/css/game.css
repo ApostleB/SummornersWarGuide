@@ -68,45 +68,7 @@
     background: #5a6fd6;
 }
 
-/* Suggestions List */
-.suggestions-list {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-top: none;
-    border-radius: 0 0 8px 8px;
-    max-height: 240px;
-    overflow-y: auto;
-    display: none;
-    z-index: 100;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    margin-top: 1px;
-}
-
-.suggestions-list.active {
-    display: block;
-}
-
-.suggestion-item {
-    padding: 12px 16px;
-    cursor: pointer;
-    font-size: 14px;
-    border-bottom: 1px solid #f5f5f5;
-}
-
-.suggestion-item:last-child {
-    border-bottom: none;
-}
-
-.suggestion-item:hover {
-    background: #f8faff;
-    color: #667eea;
-}
-
-/* Defence Card */
+/* Defence Cards */
 .defence-card {
     background: white;
     border-radius: 12px;
