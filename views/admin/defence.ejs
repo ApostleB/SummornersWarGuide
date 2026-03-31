@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/public/css/common/layout.css">
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/admin.css">
+    <link rel="stylesheet" href="/public/css/admin/game.css">
 </head>
 <body>
 <%- include('../partials/header') %>
@@ -16,12 +17,169 @@
     <div class="admin-container">
         <div class="page-header">
             <h1 class="page-title">덱 관리</h1>
-            <button id="uploadSheet" class="fileBtn uploadExcel" type="button">업로드</button>
-            <button id="downloadSheet" class="fileBtn downloadExcel" type="button">다운로드</button>
+            <p class="page-desc">방어 덱을 관리합니다</p>
+        </div>
+        <div class="header-actions">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="몬스터 이름 검색..." autocomplete="off">
+                <button type="button" class="search-btn" id="searchBtn" aria-label="검색">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="btn-group">
+                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none;">
+                <button id="uploadSheet" class="fileBtn uploadExcel" type="button">업로드</button>
+                <button id="downloadSheet" class="fileBtn downloadExcel" type="button">다운로드</button>
+            </div>
         </div>
     </div>
 
-    <div id="defenceList"></div>
+    <div class="admin-container">
+        <div id="defenceList"></div>
+    </div>
 </main>
+
+<script>
+    // 검색 기능
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') fetchDefenceList();
+    });
+    searchBtn.addEventListener('click', () => fetchDefenceList());
+
+    // 파일 업로드 기능
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadSheet');
+
+    uploadBtn.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = '업로드 중...';
+
+            const response = await fetch('/api/admin/file/defence', {
+                method: 'POST',
+                credentials: 'include',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('업로드가 완료되었습니다.');
+                fetchDefenceList();
+            } else {
+                alert(data.message || '업로드에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Failed to upload file:', error);
+            alert('업로드 중 오류가 발생했습니다.');
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = '업로드';
+            fileInput.value = '';
+        }
+    });
+
+    async function fetchDefenceList() {
+        try {
+            const keyword = searchInput.value.trim();
+            const apiUrl = keyword
+                ? `/api/game/defence?keyword=${encodeURIComponent(keyword)}`
+                : '/api/game/defence';
+
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                credentials: 'include'
+            });
+            const data = await response.json();
+            renderDefenceList(data.defenceList);
+        } catch (error) {
+            console.error('Failed to fetch defence list:', error);
+        }
+    }
+
+    function renderDefenceList(defenceList) {
+        const container = document.getElementById('defenceList');
+        if (!defenceList || defenceList.length === 0) {
+            container.innerHTML = '<div class="no-results">검색 결과가 없습니다.</div>';
+            return;
+        }
+
+        container.innerHTML = defenceList.map(defence => `
+            <div class="defence-card" data-id="${defence.defenceId}">
+                <div class="card-content">
+                    <div class="monster-deck">
+                        ${renderMonster(defence.defenceMonsterA)}
+                        ${renderMonster(defence.defenceMonsterB)}
+                        ${renderMonster(defence.defenceMonsterC)}
+                    </div>
+                    <span class="attack-count">공략 ${defence.attackList.length}건</span>
+                </div>
+                <div class="card-actions">
+                    <button class="action-btn edit-btn" onclick="editDefence('${defence.defenceId}')">수정</button>
+                    <button class="action-btn delete-btn" onclick="deleteDefence('${defence.defenceId}')">삭제</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderMonster(monster) {
+        if (!monster || !monster.monsterName) return '';
+        const typeIcon = monster.typeImg
+            ? `<img class="monster-type-icon" src="/public/image/${monster.typeImg}" alt="${monster.typeName || ''}">`
+            : '';
+
+        return `
+            <div class="monster-pill">
+                <span class="monster-name ${monster.typeColor || ''}">${typeIcon}${monster.monsterName}</span>
+            </div>
+        `;
+    }
+
+    function editDefence(defenceId) {
+        // TODO: 수정 모달 또는 페이지 이동
+        console.log('Edit defence:', defenceId);
+        alert('수정 기능 구현 예정: ' + defenceId);
+    }
+
+    async function deleteDefence(defenceId) {
+        if (!confirm('정말 삭제하시겠습니까?')) return;
+
+        try {
+            const response = await fetch(`/api/admin/defence/${defenceId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                alert('삭제되었습니다.');
+                fetchDefenceList();
+            } else {
+                const data = await response.json();
+                alert(data.message || '삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Failed to delete defence:', error);
+            alert('삭제 중 오류가 발생했습니다.');
+        }
+    }
+
+    fetchDefenceList();
+</script>
 </body>
 </html>

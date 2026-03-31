@@ -1,0 +1,223 @@
+/* Admin Game Styles */
+
+/* Header Actions */
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.header-actions .search-container {
+    flex: 1;
+    max-width: 400px;
+}
+
+.btn-group {
+    display: flex;
+    gap: 8px;
+}
+
+/* Defence Card */
+.defence-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    transition: box-shadow 0.2s;
+}
+
+.defence-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+    flex-wrap: wrap;
+}
+
+/* Monster Deck */
+.monster-deck {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.monster-pill {
+    display: flex;
+    align-items: center;
+    background: #f8faff;
+    border: 1px solid #e8eeff;
+    border-radius: 8px;
+    padding: 6px 12px;
+}
+
+.monster-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+}
+
+.monster-name.red { color: #D80546; }
+.monster-name.blue { color: #0300AA; }
+.monster-name.wind { color: #E97300; }
+.monster-name.light { color: #B8860B; }
+.monster-name.dark { color: #2E053E; }
+
+.monster-type-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+/* Attack Count */
+.attack-count {
+    font-size: 13px;
+    color: #666;
+    background: #f0f2f5;
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+/* Card Actions */
+.card-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-btn.edit-btn {
+    background: #eef0ff;
+    color: #667eea;
+    border: 1px solid #c7ceff;
+}
+
+.action-btn.edit-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+.action-btn.delete-btn {
+    background: #fff5f5;
+    color: #e53e3e;
+    border: 1px solid #fecaca;
+}
+
+.action-btn.delete-btn:hover {
+    background: #e53e3e;
+    color: white;
+}
+
+/* No Results */
+.no-results {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Search Container */
+.search-container {
+    display: flex;
+    gap: 8px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 10px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.header-actions .search-btn {
+    position: static;
+    transform: none;
+    width: auto;
+    height: auto;
+    padding: 10px 16px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.header-actions .search-btn:hover {
+    background: #5a6fd6;
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-actions .search-container {
+        max-width: 100%;
+    }
+
+    .btn-group {
+        justify-content: flex-end;
+    }
+
+    .defence-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .card-content {
+        justify-content: space-between;
+    }
+
+    .card-actions {
+        justify-content: flex-end;
+        padding-top: 12px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .monster-name {
+        display: inline-block;
+        max-width: 6em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+}
