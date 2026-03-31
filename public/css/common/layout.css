@@ -60,6 +60,20 @@ body {
     width: 100px;
 }
 
+.deckLogo {
+    height: 10%;
+    width: 20%;
+    cursor: pointer;
+}
+
+.deckLogo:hover {
+    opacity: 0.85;
+}
+
+.deckLogo,img{
+    width: 100px;
+    height: 50px;
+}
 /* Search Bar */
 .search-container {
     width: 80%;

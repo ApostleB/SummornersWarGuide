@@ -32,14 +32,14 @@ export class AuthService {
   ) {}
 
   async signup(signupDto: SignupDto) {
-    const { email, password, name, regCode } = signupDto;
+    const { password, name, regCode } = signupDto;
 
-    // 이메일 중복 체크
+    // 아이디 중복 체크
     const existingMember = await this.memberRepository.findOne({
-      where: { memberEmail: email },
+      where: { memberName: name },
     });
     if (existingMember) {
-      throw new BadRequestException("이미 등록된 이메일입니다.");
+      throw new BadRequestException("이미 등록된 아이디입니다.");
     }
 
     // 가입 승인 필요 여부 확인 (REG001)
@@ -79,7 +79,6 @@ export class AuthService {
     // 멤버 생성
     const member = this.memberRepository.create({
       memberId: uuidv4(),
-      memberEmail: email,
       memberName: name,
       memberPw: hashedPassword,
       regCode: regCode || null,
@@ -101,15 +100,15 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+    const { name, password } = loginDto;
 
     const member = await this.memberRepository.findOne({
-      where: { memberEmail: email },
+      where: { memberName: name },
     });
 
     if (!member) {
       throw new UnauthorizedException(
-        "이메일 또는 비밀번호가 올바르지 않습니다.",
+        "아이디 또는 비밀번호가 올바르지 않습니다.",
       );
     }
 
@@ -130,7 +129,7 @@ export class AuthService {
       });
       await this.createLog(member.memberId, LogType.LOGIN, "FAILED");
       throw new UnauthorizedException(
-        "이메일 또는 비밀번호가 올바르지 않습니다.",
+        "아이디 또는 비밀번호가 올바르지 않습니다.",
       );
     }
 
@@ -142,12 +141,6 @@ export class AuthService {
       await this.createLog(member.memberId, LogType.LOGIN, "STATUS_INVALID");
       throw new ForbiddenException("로그인이 허용되지 않은 계정입니다.");
     }
-
-    // CONFIRM 상태인 경우 승인 대기 메시지
-    // if (member.status === MemberStatus.CONFIRM) {
-    //   await this.createLog(member.memberId, LogType.LOGIN, "PENDING_APPROVAL");
-    //   throw new ForbiddenException("관리자 승인 대기 중인 계정입니다.");
-    // }
 
     // 토큰 생성
     const tokens = await this.generateTokens(member);
@@ -166,7 +159,6 @@ export class AuthService {
       refreshToken: tokens.refreshToken,
       member: {
         memberId: member.memberId,
-        email: member.memberEmail,
         name: member.memberName,
         level: member.memberLevel,
       },
@@ -202,7 +194,6 @@ export class AuthService {
       const newAccessToken = this.jwtService.sign(
         {
           sub: member.memberId,
-          email: member.memberEmail,
           name: member.memberName,
           level: member.memberLevel,
         },
@@ -246,7 +237,6 @@ export class AuthService {
   private async generateTokens(member: Member) {
     const payload = {
       sub: member.memberId,
-      email: member.memberEmail,
       name: member.memberName,
       level: member.memberLevel,
     };

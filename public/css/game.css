@@ -136,7 +136,7 @@
     background: #f8faff;
     border: 1px solid #e8eeff;
     border-radius: 8px;
-    padding: 4px 8px;
+    padding: 4px 5px;
     min-width: 90px;
 }
 
@@ -220,7 +220,7 @@
     border: 1px solid #e8eeff;
     border-radius: 10px;
     padding: 20px;
-    min-height: 160px;
+    height: 300px;
     display: flex;
     flex-direction: column;
 }
@@ -283,8 +283,9 @@
     font-size: 13px;
     line-height: 1.6;
     white-space: pre-wrap;
-    max-height: 120px;
+    height: calc(13px * 1.6 * 5 + 24px); /* 5줄 + padding */
     overflow-y: auto;
+    flex-shrink: 0;
 }
 
 .deck-desc-box::-webkit-scrollbar {
@@ -300,6 +301,13 @@
     color: #aaa;
     font-size: 13px;
     font-style: italic;
+    height: calc(13px * 1.6 * 5 + 24px); /* deck-desc-box와 동일 높이 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-radius: 6px;
+    flex-shrink: 0;
 }
 
 /* Slider Navigation */
@@ -423,4 +431,23 @@
 .attack-list-item .deck-desc-box {
     margin-top: 10px;
     max-height: 80px;
+}
+
+/* Mobile: 몬스터 이름 5글자 제한 */
+@media (max-width: 600px) {
+    .monster-name {
+        display: inline-block;
+        max-width: 6.5em;
+        overflow: hidden;
+        text-overflow: fade;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    .attack-monster-pill {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: fade;
+        white-space: nowrap;
+    }
 }

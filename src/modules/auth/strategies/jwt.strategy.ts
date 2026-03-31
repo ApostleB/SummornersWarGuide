@@ -30,7 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
     return {
       memberId: member.memberId,
-      email: member.memberEmail,
+      name: member.memberName,
       level: member.memberLevel,
     };
   }

@@ -17,16 +17,92 @@
             <div class="page-header">
                 <h1 class="page-title">방어 덱 목록</h1>
                 <p class="page-desc">몬스터 이름으로 검색하여 방어 덱과 공략 정보를 확인하세요</p>
+                <div class="search-container" style="max-width: 600px; margin: 20px auto 0;">
+                    <input type="text" class="search-input" id="pageSearchInput" placeholder="몬스터 이름 검색..." autocomplete="off">
+                    <button type="button" class="search-btn" id="pageSearchBtn" aria-label="검색">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div id="defenceList"></div>
         </div>
     </main>
 
     <script>
-        async function fetchDefenceList() {
+        // 페이지 검색 기능
+        (function() {
+            const pageSearchInput = document.getElementById('pageSearchInput');
+            const pageSearchBtn = document.getElementById('pageSearchBtn');
+
+            // 헤더 검색창 엘리먼트 (header.ejs에서 정의됨)
+            const headerSearchInput = document.getElementById('headerSearchInput');
+            const headerSearchBtn = document.getElementById('headerSearchBtn');
+
+            if (pageSearchInput && pageSearchBtn) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const keyword = urlParams.get('keyword');
+                if (keyword) {
+                    pageSearchInput.value = keyword;
+                    if (headerSearchInput) headerSearchInput.value = keyword;
+                }
+
+                pageSearchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        executePageSearch();
+                    }
+                });
+
+                pageSearchBtn.addEventListener('click', () => {
+                    executePageSearch();
+                });
+
+                // 헤더 검색창의 동작을 이 페이지의 로직으로 오버라이드
+                if (headerSearchInput && headerSearchBtn) {
+                    // 기존 리스너들은 URL 이동을 하므로, 필요한 경우 새로고침 없이 처리하도록 변경 가능
+                    // 여기서는 단순히 값을 동기화하고 executePageSearch를 호출하도록 함
+                    headerSearchInput.addEventListener('input', (e) => {
+                        pageSearchInput.value = e.target.value;
+                    });
+
+                    headerSearchBtn.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        executePageSearch();
+                    };
+
+                    headerSearchInput.onkeydown = (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            executePageSearch();
+                        }
+                    };
+                }
+
+                function executePageSearch() {
+                    const kw = pageSearchInput.value.trim();
+
+                    // URL 파라미터 업데이트 (새로고침 없이)
+                    const url = new URL(window.location);
+                    if (kw) {
+                        url.searchParams.set('keyword', kw);
+                    } else {
+                        url.searchParams.delete('keyword');
+                    }
+                    window.history.pushState({}, '', url);
+
+                    // 리스트 즉시 새로고침
+                    fetchDefenceList(kw);
+                }
+            }
+        })();
+
+        async function fetchDefenceList(keywordOverride) {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
-                const keyword = urlParams.get('keyword') || '';
+                const keyword = keywordOverride !== undefined ? keywordOverride : (urlParams.get('keyword') || '');
 
                 const apiUrl = keyword
                     ? `/api/game/defence?keyword=${encodeURIComponent(keyword)}`
@@ -37,6 +113,7 @@
                     credentials: 'include'
                 });
                 const data = await response.json();
+                console.log(data)
                 renderDefenceList(data.defenceList);
             } catch (error) {
                 console.error('Failed to fetch defence list:', error);
@@ -63,7 +140,6 @@
                         </div>
                         <div style="display:flex;align-items:center;gap:10px;">
                             <span class="attack-count">⚔ ${defence.attackList.length}</span>
-                            <a class="detail-link" href="/game/defence/detail?defenceId=${defence.defenceId}" onclick="event.stopPropagation()">상세 페이지</a>
                             <span class="chevron">▼</span>
                         </div>
                     </div>
@@ -77,6 +153,7 @@
         }
 
         async function toggleAccordion(defenceId) {
+            console.log(defenceId);
             const card = document.getElementById(`card-${defenceId}`);
             const body = document.getElementById(`body-${defenceId}`);
             const isOpen = card.classList.contains('open');
@@ -116,53 +193,71 @@
         function renderInlineSlider(defenceId) {
             const inner = document.getElementById(`inner-${defenceId}`);
             const state = sliderState[defenceId];
-            const { attackList } = state;
+            const { attackList, currentIndex } = state;
 
             if (!attackList || attackList.length === 0) {
                 inner.innerHTML = '<div class="no-attack-inline">등록된 공략 덱이 없습니다.</div>';
                 return;
             }
 
+            const currentDeck = attackList[currentIndex];
+            const isFirst = currentIndex === 0;
+            const isLast = currentIndex === attackList.length - 1;
+
             inner.innerHTML = `
-                <div class="attack-list-container">
-                    <div class="section-label">공략 덱 (${attackList.length}건)</div>
-                    <div class="attack-list">
-                        ${attackList.map((deck, index) => `
-                            <div class="attack-list-item">
-                                <div class="attack-item-header">
-                                    <span class="attack-item-number">${index + 1}</span>
-                                    <div class="attack-monster-deck">
-                                        ${renderAttackMonsterPill(deck.attackMonsterA)}
-                                        ${renderAttackMonsterPill(deck.attackMonsterB)}
-                                        ${renderAttackMonsterPill(deck.attackMonsterC)}
-                                    </div>
-                                </div>
-                                ${deck.deckDesc
-                                    ? `<div class="deck-desc-box">${deck.deckDesc}</div>`
-                                    : ''
-                                }
+                <div class="inline-slider-wrapper">
+                    <div class="inline-attack-slider">
+                        <div class="slider-header">
+                            <div class="section-label">공략 덱</div>
+                            <div class="pagination-info">${currentIndex + 1} / ${attackList.length}</div>
+                        </div>
+                        <div class="attack-deck-content">
+                            <div class="attack-monster-deck">
+                                ${renderAttackMonsterPill(currentDeck.attackMonsterA)}
+                                ${renderAttackMonsterPill(currentDeck.attackMonsterB)}
+                                ${renderAttackMonsterPill(currentDeck.attackMonsterC)}
                             </div>
-                        `).join('')}
+                            ${currentDeck.deckDesc
+                                ? `<div class="deck-desc-box">${currentDeck.deckDesc}</div>`
+                                : '<div class="no-desc">설명이 없습니다.</div>'
+                            }
+                        </div>
+                        <div class="slider-nav-buttons">
+                            <button class="slider-nav-btn" onclick="changeSliderPage('${defenceId}', -1)" ${isFirst ? 'disabled' : ''}>이전</button>
+                            <button class="slider-nav-btn" onclick="changeSliderPage('${defenceId}', 1)" ${isLast ? 'disabled' : ''}>다음</button>
+                        </div>
                     </div>
                 </div>
             `;
         }
 
+        function changeSliderPage(defenceId, direction) {
+            const state = sliderState[defenceId];
+            const newIndex = state.currentIndex + direction;
+            if (newIndex >= 0 && newIndex < state.attackList.length) {
+                state.currentIndex = newIndex;
+                renderInlineSlider(defenceId);
+                // accordion 높이 재조정
+                const body = document.getElementById(`body-${defenceId}`);
+                body.style.maxHeight = body.scrollHeight + 'px';
+            }
+        }
+
         function renderMonster(monster) {
-            if (!monster) return '';
+            if (!monster || !monster.monsterName) return '';
             const typeIcon = monster.typeImg
                 ? `<img class="monster-type-icon" src="/public/image/${monster.typeImg}" alt="${monster.typeName || ''}">`
                 : '';
 
             return `
                 <div class="monster-pill">
-                    <span class="monster-name ${monster.typeColor}">${typeIcon}${monster.monsterName}</span>
+                    <span class="monster-name ${monster.typeColor || ''}">${typeIcon}${monster.monsterName}</span>
                 </div>
             `;
         }
 
         function renderAttackMonsterPill(monster) {
-            if (!monster) return '';
+            if (!monster || !monster.monsterName) return '';
             const typeIcon = monster.typeImg
                 ? `<img class="monster-type-icon-sm" src="/public/image/${monster.typeImg}" alt="${monster.typeName || ''}">`
                 : '';

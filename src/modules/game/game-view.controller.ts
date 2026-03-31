@@ -11,16 +11,4 @@ export class GameViewController {
     return { user: req.user || null };
   }
 
-  @Get(["/", "defence/detail"])
-  @Render("game/defenceDetail")
-  defenceDetail(@Req() req: Request) {
-    const defenceId = req.query.defenceId;
-    return { user: req.user || null, defenceId };
-  }
-
-  @Get("monster")
-  @Render("game/monster")
-  monsterList(@Req() req: Request) {
-    return { user: req.user || null };
-  }
 }

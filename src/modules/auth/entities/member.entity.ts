@@ -18,10 +18,7 @@ export class Member {
   @PrimaryColumn({ name: "MEMBER_ID", type: "uuid" })
   memberId: string;
 
-  @Column({ name: "MEMBER_EMAIL", type: "varchar", length: 200 })
-  memberEmail: string;
-
-  @Column({ name: "MEMBER_NAME", type: "varchar", length: 100 })
+  @Column({ name: "MEMBER_NAME", type: "varchar", length: 100, unique: true })
   memberName: string;
 
   @Column({ name: "MEMBER_PW", type: "varchar", length: 500 })

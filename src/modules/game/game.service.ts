@@ -1,156 +1,102 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { DefenceDeck } from "./entities/defence.entity";
-import { Monster } from "./entities/monster.entity";
+import { Defence } from "./entities/defence.entity";
+import { Attack } from "./entities/attack.entity";
 import { DtlCd } from "../code/entities/dtl-cd.entity";
-
-interface MonsterTypeInfo {
-  typeName: string;
-  typeColor: string;
-  typeImg: string;
-}
 
 @Injectable()
 export class GameService {
-  private monsterTypeCache: Map<string, MonsterTypeInfo> = new Map();
-
   constructor(
-    @InjectRepository(DefenceDeck)
-    private defenceDeckRepository: Repository<DefenceDeck>,
-    @InjectRepository(Monster)
-    private monsterRepository: Repository<Monster>,
+    @InjectRepository(Defence)
+    private defenceRepository: Repository<Defence>,
+    @InjectRepository(Attack)
+    private attackRepository: Repository<Attack>,
     @InjectRepository(DtlCd)
     private dtlCdRepository: Repository<DtlCd>,
   ) {}
 
-  private async getMonsterTypeInfo(monsterType: string): Promise<MonsterTypeInfo | null> {
-    if (!monsterType) return null;
-
-    if (this.monsterTypeCache.has(monsterType)) {
-      return this.monsterTypeCache.get(monsterType);
-    }
-
-    const dtlCd = await this.dtlCdRepository.findOne({
-      where: { code: monsterType, grpCd: "MONSTER_CODE" },
-    });
-
-    if (dtlCd) {
-      const typeInfo: MonsterTypeInfo = {
-        typeName: dtlCd.codeTitle,
-        typeColor: dtlCd.codeValue,
-        typeImg: dtlCd.codeAttr1,
-      };
-      this.monsterTypeCache.set(monsterType, typeInfo);
-      return typeInfo;
-    }
-
-    return null;
-  }
-
-  private async mapMonsterWithType(monster: Monster) {
-    if (!monster) return null;
-
-    const typeInfo = await this.getMonsterTypeInfo(monster.monsterType);
-
+  private mapMonsterInfo(name: string, typeInfo: DtlCd) {
+    if (!name) return null;
     return {
-      monsterName: monster.monsterName,
-      monsterType: monster.monsterType,
-      monsterDesc: monster.monsterDesc,
-      typeName: typeInfo?.typeName || null,
-      typeColor: typeInfo?.typeColor || null,
-      typeImg: typeInfo?.typeImg || null,
+      monsterName: name,
+      typeCode: typeInfo?.code,
+      typeName: typeInfo?.codeTitle,
+      typeColor: typeInfo?.codeValue,
+      typeImg: typeInfo?.codeAttr1,
     };
   }
 
-  async getDefenceList(searchKeyword?: string) {
-    const queryBuilder = this.defenceDeckRepository
+  async getDefenceList(keyword: string): Promise<any> {
+    const query = this.defenceRepository
       .createQueryBuilder("defence")
-      .leftJoinAndSelect("defence.monsterA", "monsterA")
-      .leftJoinAndSelect("defence.monsterB", "monsterB")
-      .leftJoinAndSelect("defence.monsterC", "monsterC")
+      .leftJoinAndSelect("defence.monsterAType", "mAType")
+      .leftJoinAndSelect("defence.monsterBType", "mBType")
+      .leftJoinAndSelect("defence.monsterCType", "mCType")
       .leftJoinAndSelect("defence.attackList", "attackList")
-      .leftJoinAndSelect("attackList.monsterA", "attackMonsterA")
-      .leftJoinAndSelect("attackList.monsterB", "attackMonsterB")
-      .leftJoinAndSelect("attackList.monsterC", "attackMonsterC");
+      .leftJoinAndSelect("attackList.monsterAType", "amAType")
+      .leftJoinAndSelect("attackList.monsterBType", "amBType")
+      .leftJoinAndSelect("attackList.monsterCType", "amCType")
+      .orderBy("defence.inputDt", "DESC");
 
-    if (searchKeyword) {
-      queryBuilder.where(
-        "monsterA.monsterName LIKE :keyword OR monsterB.monsterName LIKE :keyword OR monsterC.monsterName LIKE :keyword",
-        { keyword: `%${searchKeyword}%` },
+    if (keyword) {
+      query.where(
+        "(defence.monsterA LIKE :keyword OR defence.monsterB LIKE :keyword OR defence.monsterC LIKE :keyword)",
+        { keyword: `%${keyword}%` },
       );
     }
 
-    const defenceList = await queryBuilder.getMany();
+    const defenceList = await query.getMany();
 
-    const result = await Promise.all(
-      defenceList.map(async (defence) => ({
+    return {
+      defenceList: defenceList.map((defence) => ({
         defenceId: defence.defenceId,
-        defenceMonsterA: await this.mapMonsterWithType(defence.monsterA),
-        defenceMonsterB: await this.mapMonsterWithType(defence.monsterB),
-        defenceMonsterC: await this.mapMonsterWithType(defence.monsterC),
-        attackList: await Promise.all(
-          (defence.attackList || []).map(async (attack) => ({
-            attackId: attack.attackId,
-            attackMonsterA: await this.mapMonsterWithType(attack.monsterA),
-            attackMonsterB: await this.mapMonsterWithType(attack.monsterB),
-            attackMonsterC: await this.mapMonsterWithType(attack.monsterC),
-            deckDesc: attack.deckDesc,
-          })),
-        ),
+        defenceMonsterA: this.mapMonsterInfo(defence.monsterA, defence.monsterAType),
+        defenceMonsterB: this.mapMonsterInfo(defence.monsterB, defence.monsterBType),
+        defenceMonsterC: this.mapMonsterInfo(defence.monsterC, defence.monsterCType),
+        attackList: (defence.attackList || []).map((attack) => ({
+          attackId: attack.attackId,
+          attackMonsterA: this.mapMonsterInfo(attack.monsterA, attack.monsterAType),
+          attackMonsterB: this.mapMonsterInfo(attack.monsterB, attack.monsterBType),
+          attackMonsterC: this.mapMonsterInfo(attack.monsterC, attack.monsterCType),
+          deckDesc: attack.deckDesc,
+        })),
       })),
-    );
-
-    return result;
+    };
   }
 
-  async getDefenceDetail(defenceId: string) {
-    const defence = await this.defenceDeckRepository
+  async getDefenceDetail(defenceId: string): Promise<any> {
+    const defence = await this.defenceRepository
       .createQueryBuilder("defence")
-      .leftJoinAndSelect("defence.monsterA", "monsterA")
-      .leftJoinAndSelect("defence.monsterB", "monsterB")
-      .leftJoinAndSelect("defence.monsterC", "monsterC")
+      .leftJoinAndSelect("defence.monsterAType", "mAType")
+      .leftJoinAndSelect("defence.monsterBType", "mBType")
+      .leftJoinAndSelect("defence.monsterCType", "mCType")
       .leftJoinAndSelect("defence.attackList", "attackList")
-      .leftJoinAndSelect("attackList.monsterA", "attackMonsterA")
-      .leftJoinAndSelect("attackList.monsterB", "attackMonsterB")
-      .leftJoinAndSelect("attackList.monsterC", "attackMonsterC")
+      .leftJoinAndSelect("attackList.monsterAType", "amAType")
+      .leftJoinAndSelect("attackList.monsterBType", "amBType")
+      .leftJoinAndSelect("attackList.monsterCType", "amCType")
       .where("defence.defenceId = :defenceId", { defenceId })
       .getOne();
 
     if (!defence) {
-      return null;
+      throw new NotFoundException("방어 덱을 찾을 수 없습니다.");
     }
 
     return {
-      defenceId: defence.defenceId,
-      defenceMonsterA: await this.mapMonsterWithType(defence.monsterA),
-      defenceMonsterB: await this.mapMonsterWithType(defence.monsterB),
-      defenceMonsterC: await this.mapMonsterWithType(defence.monsterC),
-      attackList: await Promise.all(
-        (defence.attackList || []).map(async (attack) => ({
+      defence: {
+        defenceId: defence.defenceId,
+        defenceMonsterA: this.mapMonsterInfo(defence.monsterA, defence.monsterAType),
+        defenceMonsterB: this.mapMonsterInfo(defence.monsterB, defence.monsterBType),
+        defenceMonsterC: this.mapMonsterInfo(defence.monsterC, defence.monsterCType),
+        description: defence.description,
+        attackList: (defence.attackList || []).map((attack) => ({
           attackId: attack.attackId,
-          attackMonsterA: await this.mapMonsterWithType(attack.monsterA),
-          attackMonsterB: await this.mapMonsterWithType(attack.monsterB),
-          attackMonsterC: await this.mapMonsterWithType(attack.monsterC),
+          attackMonsterA: this.mapMonsterInfo(attack.monsterA, attack.monsterAType),
+          attackMonsterB: this.mapMonsterInfo(attack.monsterB, attack.monsterBType),
+          attackMonsterC: this.mapMonsterInfo(attack.monsterC, attack.monsterCType),
           deckDesc: attack.deckDesc,
         })),
-      ),
+      },
     };
-  }
-
-  async getMonsterSuggestions(keyword: string): Promise<string[]> {
-    if (!keyword) {
-      return [];
-    }
-
-    const monsters = await this.monsterRepository
-      .createQueryBuilder("monster")
-      .select("monster.monsterName")
-      .where("monster.monsterName LIKE :keyword", { keyword: `%${keyword}%` })
-      .distinct(true)
-      .limit(10)
-      .getMany();
-
-    return monsters.map((m) => m.monsterName);
   }
 }

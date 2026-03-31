@@ -1,6 +1,5 @@
 import {
   Controller,
-  Post,
   Get,
   Query,
   Req,
@@ -18,21 +17,9 @@ export class GameController {
   constructor(private readonly gameService: GameService) {}
 
   @Get("defence")
-  async defenceList(
-    @Query("keyword") keyword: string,
-    @Res() res: Response,
-  ) {
+  async defenceList(@Query("keyword") keyword: string, @Res() res: Response) {
     const defenceList = await this.gameService.getDefenceList(keyword);
-    return res.status(HttpStatus.OK).json({ defenceList });
-  }
-
-  @Get("monster/suggest")
-  async monsterSuggestions(
-    @Query("keyword") keyword: string,
-    @Res() res: Response,
-  ) {
-    const suggestions = await this.gameService.getMonsterSuggestions(keyword);
-    return res.status(HttpStatus.OK).json({ suggestions });
+    return res.status(HttpStatus.OK).json(defenceList);
   }
 
   @Get("defence/:defenceId")
@@ -44,11 +31,7 @@ export class GameController {
         .status(HttpStatus.NOT_FOUND)
         .json({ message: "방어 덱을 찾을 수 없습니다." });
     }
-    return res.status(HttpStatus.OK).json({ defence });
+    return res.status(HttpStatus.OK).json(defence);
   }
 
-  @Post("defence/:defenceId")
-  async defenceDetail(@Req() req: Request, @Res() res: Response) {
-    return res.status(HttpStatus.OK).json({});
-  }
 }

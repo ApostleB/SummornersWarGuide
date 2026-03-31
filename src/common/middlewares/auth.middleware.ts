@@ -6,7 +6,6 @@ import { AuthService } from "../../modules/auth/auth.service";
 
 export interface AuthUser {
   memberId: string;
-  email: string;
   name?: string;
   level?: number;
 }
@@ -31,7 +30,6 @@ export class AuthMiddleware implements NestMiddleware {
 
         (req as any).user = {
           memberId: payload.sub,
-          email: payload.email,
           name: payload.name,
           level: payload.level,
         } as AuthUser;
@@ -76,7 +74,6 @@ export class AuthMiddleware implements NestMiddleware {
       const payload = this.jwtService.decode(result.accessToken) as any;
       (req as any).user = {
         memberId: payload.sub,
-        email: payload.email,
         name: payload.name,
         level: payload.level,
       } as AuthUser;
