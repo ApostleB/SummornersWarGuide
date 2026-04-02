@@ -18,7 +18,7 @@ export class AdminController {
     private readonly fileService: FileService,
   ) {}
 
-  @Post('upload')
+  @Post("upload")
   @UseInterceptors(FileInterceptor('file', multerOptions))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
@@ -28,15 +28,14 @@ export class AdminController {
     return { success: true, data };
   }
 
-  @Post('file/defence')
-  @UseInterceptors(FileInterceptor('file', multerOptions))
+  @Post("file/defence")
+  @UseInterceptors(FileInterceptor("file", multerOptions))
   async uploadDefenceFile(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
-      throw new BadRequestException('File is required');
+      throw new BadRequestException("File is required");
     }
     const data = await this.fileService.readExcel(file);
     await this.adminService.defenceArraySave(data);
     return { success: true, data };
   }
 }
-
