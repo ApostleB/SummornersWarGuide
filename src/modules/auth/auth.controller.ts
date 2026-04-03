@@ -11,11 +11,53 @@ import { Response, Request } from "express";
 import { AuthService } from "./auth.service";
 import { SignupDto } from "./dto/signup.dto";
 import { LoginDto } from "./dto/login.dto";
+import { ChangePasswordDto } from "./dto/change-password.dto";
+import { UpdateNicknameDto } from "./dto/update-nickname.dto";
 import { AuthUser } from "../../common/middlewares/auth.middleware";
 
 @Controller("api/auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post("update-nickname")
+  async updateNickname(
+    @Req() req: Request,
+    @Body() updateNicknameDto: UpdateNicknameDto,
+    @Res() res: Response,
+  ) {
+    const user = (req as any).user as AuthUser | undefined;
+    if (!user) {
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json({ message: "로그인이 필요합니다." });
+    }
+
+    const result = await this.authService.updateNickname(
+      user.memberId,
+      updateNicknameDto,
+    );
+    return res.status(HttpStatus.OK).json(result);
+  }
+
+  @Post("change-password")
+  async changePassword(
+    @Req() req: Request,
+    @Body() changePasswordDto: ChangePasswordDto,
+    @Res() res: Response,
+  ) {
+    const user = (req as any).user as AuthUser | undefined;
+    if (!user) {
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json({ message: "로그인이 필요합니다." });
+    }
+
+    const result = await this.authService.changePassword(
+      user.memberId,
+      changePasswordDto,
+    );
+    return res.status(HttpStatus.OK).json(result);
+  }
 
   @Post("signup")
   async signup(@Body() signupDto: SignupDto, @Res() res: Response) {

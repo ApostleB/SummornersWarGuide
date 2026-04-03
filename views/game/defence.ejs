@@ -17,7 +17,7 @@
             <div class="page-header">
                 <h1 class="page-title">방어 덱 목록</h1>
                 <p class="page-desc">몬스터 이름으로 검색하여 방어 덱과 공략 정보를 확인하세요</p>
-                <div class="search-container" style="max-width: 600px; margin: 20px auto 0; position: relative;">
+                <div class="search-container" style="max-width: 600px; margin: 20px auto 0;">
                     <input type="text" class="search-input" id="pageSearchInput" placeholder="몬스터 이름 검색..." autocomplete="off">
                     <button type="button" class="search-btn" id="pageSearchBtn" aria-label="검색">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -25,7 +25,6 @@
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
                     </button>
-<!--                    <div id="suggestions" class="suggestions-list"></div>-->
                 </div>
             </div>
             <div id="defenceList"></div>
@@ -37,8 +36,6 @@
         (function() {
             const pageSearchInput = document.getElementById('pageSearchInput');
             const pageSearchBtn = document.getElementById('pageSearchBtn');
-            // const suggestionsEl = document.getElementById('suggestions');
-            // let debounceTimer;
 
             // 헤더 검색창 엘리먼트 (header.ejs에서 정의됨)
             const headerSearchInput = document.getElementById('headerSearchInput');
@@ -52,78 +49,22 @@
                     if (headerSearchInput) headerSearchInput.value = keyword;
                 }
 
-                /* 예상 검색어 기능 - 주석처리
-                pageSearchInput.addEventListener('input', (e) => {
-                    clearTimeout(debounceTimer);
-                    const kw = e.target.value.trim();
-                    if (kw.length >= 1) {
-                        debounceTimer = setTimeout(() => fetchSuggestions(kw), 200);
-                    } else {
-                        suggestionsEl.classList.remove('active');
-                    }
-                });
-                */
-
                 pageSearchInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
-                        // suggestionsEl.classList.remove('active');
                         executePageSearch();
                     }
                 });
 
                 pageSearchBtn.addEventListener('click', () => {
-                    // suggestionsEl.classList.remove('active');
                     executePageSearch();
                 });
 
-                /* 외부 클릭 시 suggestions 닫기 - 주석처리
-                document.addEventListener('click', (e) => {
-                    if (!e.target.closest('.search-container')) {
-                        suggestionsEl.classList.remove('active');
-                    }
-                });
-
-                async function fetchSuggestions(kw) {
-                    try {
-                        const response = await fetch(`/api/game/monster/suggest?keyword=${encodeURIComponent(kw)}`, {
-                            credentials: 'include'
-                        });
-                        const data = await response.json();
-                        renderSuggestions(data.suggestions);
-                    } catch (error) {
-                        console.error('Failed to fetch suggestions:', error);
-                    }
-                }
-
-                function renderSuggestions(suggestions) {
-                    if (!suggestions || suggestions.length === 0) {
-                        suggestionsEl.classList.remove('active');
-                        return;
-                    }
-
-                    suggestionsEl.innerHTML = suggestions.map(name =>
-                        `<div class="suggestion-item" data-name="${name}">${name}</div>`
-                    ).join('');
-                    suggestionsEl.classList.add('active');
-
-                    suggestionsEl.querySelectorAll('.suggestion-item').forEach(item => {
-                        item.addEventListener('click', () => {
-                            pageSearchInput.value = item.dataset.name;
-                            suggestionsEl.classList.remove('active');
-                            executePageSearch();
-                        });
-                    });
-                }
-                */
-
                 // 헤더 검색창의 동작을 이 페이지의 로직으로 오버라이드
                 if (headerSearchInput && headerSearchBtn) {
-                    // 기존 리스너들은 URL 이동을 하므로, 필요한 경우 새로고침 없이 처리하도록 변경 가능
-                    // 여기서는 단순히 값을 동기화하고 executePageSearch를 호출하도록 함
                     headerSearchInput.addEventListener('input', (e) => {
                         pageSearchInput.value = e.target.value;
                     });
-
+                    
                     headerSearchBtn.onclick = (e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -140,8 +81,6 @@
 
                 function executePageSearch() {
                     const kw = pageSearchInput.value.trim();
-
-                    // URL 파라미터 업데이트 (새로고침 없이)
                     const url = new URL(window.location);
                     if (kw) {
                         url.searchParams.set('keyword', kw);
@@ -149,8 +88,6 @@
                         url.searchParams.delete('keyword');
                     }
                     window.history.pushState({}, '', url);
-
-                    // 리스트 즉시 새로고침
                     fetchDefenceList(kw);
                 }
             }
@@ -170,14 +107,12 @@
                     credentials: 'include'
                 });
                 const data = await response.json();
-                console.log(data)
                 renderDefenceList(data.defenceList);
             } catch (error) {
                 console.error('Failed to fetch defence list:', error);
             }
         }
 
-        // sliderState: defenceId → { attackList, currentIndex }
         const sliderState = {};
 
         function renderDefenceList(defenceList) {
@@ -196,7 +131,7 @@
                             ${renderMonster(defence.defenceMonsterC)}
                         </div>
                         <div style="display:flex;align-items:center;gap:10px;">
-                            <span class="attack-count">⚔ ${defence.attackList.length}</span>
+                            <span class="attack-count">⚔ ${defence.attackCount}</span>
                             <span class="chevron">▼</span>
                         </div>
                     </div>
@@ -210,12 +145,10 @@
         }
 
         async function toggleAccordion(defenceId) {
-            console.log(defenceId);
             const card = document.getElementById(`card-${defenceId}`);
             const body = document.getElementById(`body-${defenceId}`);
             const isOpen = card.classList.contains('open');
 
-            // 모든 카드 닫기
             document.querySelectorAll('.defence-card.open').forEach(c => {
                 c.classList.remove('open');
                 document.getElementById(`body-${c.dataset.id}`).style.maxHeight = null;
@@ -226,7 +159,6 @@
             card.classList.add('open');
             body.style.maxHeight = body.scrollHeight + 'px';
 
-            // 이미 로드된 경우 스킵
             if (sliderState[defenceId]) {
                 renderInlineSlider(defenceId);
                 return;
@@ -235,11 +167,8 @@
             try {
                 const response = await fetch(`/api/game/defence/${defenceId}`, { credentials: 'include' });
                 const data = await response.json();
-                console.log(data);
-                const attackList = data.defence ? (data.defence.attackList || []) : [];
-                sliderState[defenceId] = { attackList, currentIndex: 0 };
+                sliderState[defenceId] = { attackList: data.attackList || [], currentIndex: 0 };
                 renderInlineSlider(defenceId);
-                // 높이 재조정
                 body.style.maxHeight = body.scrollHeight + 'px';
             } catch (e) {
                 document.getElementById(`inner-${defenceId}`).innerHTML =
@@ -265,8 +194,13 @@
                 <div class="inline-slider-wrapper">
                     <div class="inline-attack-slider">
                         <div class="slider-header">
-                            <div class="section-label">공략 덱</div>
-                            <div class="pagination-info">${currentIndex + 1} / ${attackList.length}</div>
+                            <div class="header-left">
+                                <div class="section-label">공략 덱</div>
+                            </div>
+                            <div class="header-right">
+                                <div class="pagination-info">${currentIndex + 1} / ${attackList.length}</div>
+                                <div class="attack-date">${currentDeck.inputDt ? new Date(currentDeck.inputDt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '-'}</div>
+                            </div>
                         </div>
                         <div class="attack-deck-content">
                             <div class="attack-monster-deck">
@@ -294,7 +228,6 @@
             if (newIndex >= 0 && newIndex < state.attackList.length) {
                 state.currentIndex = newIndex;
                 renderInlineSlider(defenceId);
-                // accordion 높이 재조정
                 const body = document.getElementById(`body-${defenceId}`);
                 body.style.maxHeight = body.scrollHeight + 'px';
             }

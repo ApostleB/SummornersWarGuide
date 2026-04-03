@@ -15,6 +15,8 @@ import { MemberLog, LogType } from "./entities/member-log.entity";
 import { DtlCd, YesNo } from "../code/entities/dtl-cd.entity";
 import { SignupDto } from "./dto/signup.dto";
 import { LoginDto } from "./dto/login.dto";
+import { ChangePasswordDto } from "./dto/change-password.dto";
+import { UpdateNicknameDto } from "./dto/update-nickname.dto";
 
 @Injectable()
 export class AuthService {
@@ -143,12 +145,14 @@ export class AuthService {
 
     await this.createLog(member.memberId, LogType.LOGIN, "SUCCESS");
 
+    console.log("nickname: ", member.memberNickname);
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       member: {
         memberId: member.memberId,
         name: member.memberName,
+        nickname: member.memberNickname,
         level: member.memberLevel,
       },
     };
@@ -162,6 +166,57 @@ export class AuthService {
     await this.createLog(memberId, LogType.LOGOUT, "SUCCESS");
 
     return { message: "로그아웃 되었습니다." };
+  }
+
+  async changePassword(memberId: string, changePasswordDto: ChangePasswordDto) {
+    const { currentPassword, newPassword } = changePasswordDto;
+
+    const member = await this.memberRepository.findOne({
+      where: { memberId },
+    });
+
+    if (!member) {
+      throw new BadRequestException("사용자를 찾을 수 없습니다.");
+    }
+
+    // 현재 비밀번호 확인
+    const isPasswordValid = await bcrypt.compare(currentPassword, member.memberPw);
+    if (!isPasswordValid) {
+      throw new BadRequestException("현재 비밀번호가 일치하지 않습니다.");
+    }
+
+    // 새 비밀번호 해시
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // 비밀번호 업데이트
+    await this.memberRepository.update(memberId, {
+      memberPw: hashedPassword,
+    });
+
+    await this.createLog(memberId, LogType.LOGIN, "PASSWORD_CHANGED");
+
+    return { message: "비밀번호가 성공적으로 변경되었습니다." };
+  }
+
+  async updateNickname(memberId: string, updateNicknameDto: UpdateNicknameDto) {
+    const { nickname } = updateNicknameDto;
+
+    // 닉네임 중복 체크
+    const existingMember = await this.memberRepository.findOne({
+      where: { memberNickname: nickname },
+    });
+
+    if (existingMember && existingMember.memberId !== memberId) {
+      throw new BadRequestException("이미 사용 중인 닉네임입니다.");
+    }
+
+    await this.memberRepository.update(memberId, {
+      memberNickname: nickname,
+    });
+
+    await this.createLog(memberId, LogType.LOGIN, "NICKNAME_CHANGED");
+
+    return { message: "닉네임이 성공적으로 변경되었습니다.", nickname };
   }
 
   async refreshTokens(refreshToken: string, expiredAccessToken: string) {
@@ -184,6 +239,7 @@ export class AuthService {
         {
           sub: member.memberId,
           name: member.memberName,
+          nickname: member.memberNickname,
           level: member.memberLevel,
         },
         {
@@ -227,6 +283,7 @@ export class AuthService {
     const payload = {
       sub: member.memberId,
       name: member.memberName,
+      nickname: member.memberNickname,
       level: member.memberLevel,
     };
 

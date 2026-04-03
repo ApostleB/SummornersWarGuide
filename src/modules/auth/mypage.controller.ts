@@ -1,11 +1,27 @@
-import { Controller, Get, Render, Req } from "@nestjs/common";
+import { Controller, Get, Render, Req, UseGuards } from "@nestjs/common";
 import { Request } from "express";
+import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { AuthService } from "./auth.service";
 
 @Controller("mypage")
 export class MypageController {
+  constructor(private readonly authService: AuthService) {}
+
+  @UseGuards(JwtAuthGuard)
   @Get()
   @Render("mypage/index")
-  mypagePage(@Req() req: Request) {
-    return { user: req.user || null };
+  async mypagePage(@Req() req: Request) {
+    const memberId = (req.user as any).memberId;
+    const member = await this.authService.validateUser(memberId);
+
+    return {
+      user: {
+        memberId: member.memberId,
+        memberName: member.memberName,
+        memberNickname: member.memberNickname,
+        inputDt: member.inputDt,
+        loginDt: member.loginDt,
+      },
+    };
   }
 }

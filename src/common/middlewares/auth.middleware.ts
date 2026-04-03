@@ -7,6 +7,7 @@ import { AuthService } from "../../modules/auth/auth.service";
 export interface AuthUser {
   memberId: string;
   name?: string;
+  nickname?: string;
   level?: number;
 }
 
@@ -31,6 +32,7 @@ export class AuthMiddleware implements NestMiddleware {
         (req as any).user = {
           memberId: payload.sub,
           name: payload.name,
+          nickname: payload.nickname,
           level: payload.level,
         } as AuthUser;
       } catch (error) {
@@ -75,6 +77,7 @@ export class AuthMiddleware implements NestMiddleware {
       (req as any).user = {
         memberId: payload.sub,
         name: payload.name,
+        nickname: payload.nickname,
         level: payload.level,
       } as AuthUser;
     } catch (refreshError) {

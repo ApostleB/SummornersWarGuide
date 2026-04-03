@@ -7,62 +7,7 @@
     <title>마이페이지</title>
     <link rel="stylesheet" href="/public/css/common/layout.css">
     <link rel="stylesheet" href="/public/css/style.css">
-    <style>
-        .mypage-container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .user-info-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .user-info-card h2 {
-            margin-bottom: 20px;
-            color: #333;
-            font-size: 20px;
-        }
-
-        .info-row {
-            display: flex;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .info-row:last-child {
-            border-bottom: none;
-        }
-
-        .info-label {
-            width: 100px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .info-value {
-            flex: 1;
-            color: #333;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .no-auth-message {
-            text-align: center;
-            padding: 40px 20px;
-            color: #666;
-        }
-
-        .no-auth-message a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-        }
-    </style>
+    <link rel="stylesheet" href="/public/css/mypage.css">
 </head>
 <body>
     <%- include('../partials/header') %>
@@ -74,7 +19,34 @@
                     <h2>내 정보</h2>
                     <div class="info-row">
                         <span class="info-label">아이디</span>
-                        <span class="info-value"><%= user.name || '-' %></span>
+                        <span class="info-value"><%= user.memberName %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">닉네임</span>
+                        <div class="info-value-group">
+                            <span id="nicknameText" class="info-value"><%= user.memberNickname %></span>
+                            <div id="nicknameEditGroup" class="edit-group" style="display: none;">
+                                <input type="text" id="nicknameInput" class="inline-input" value="<%= user.memberNickname %>" minlength="2" maxlength="20">
+                                <button type="button" class="btn-confirm" onclick="confirmNickname()">확인</button>
+                                <button type="button" class="btn-cancel" onclick="toggleNicknameEdit(false)">취소</button>
+                            </div>
+                            <button type="button" id="btnEditNickname" class="btn-inline-edit" onclick="toggleNicknameEdit(true)">수정</button>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">가입일</span>
+                        <span class="info-value">
+                            <%= user.inputDt ? new Date(user.inputDt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '-' %>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">최근 로그인</span>
+                        <span class="info-value">
+                            <%= user.loginDt ? new Date(user.loginDt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '-' %>
+                        </span>
+                    </div>
+                    <div class="action-row">
+                        <button type="button" class="btn-action" onclick="openPwModal()">비밀번호 변경</button>
                     </div>
                 </div>
             <% } else { %>
@@ -85,5 +57,151 @@
             <% } %>
         </div>
     </main>
+
+    <!-- 비밀번호 변경 모달 -->
+    <div id="pwModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>비밀번호 변경</h3>
+                <button type="button" class="btn-close" onclick="closePwModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="message" id="pwMessage"></div>
+                <form id="changePwForm">
+                    <div class="form-group">
+                        <label for="currentPassword">현재 비밀번호</label>
+                        <input type="password" id="currentPassword" name="currentPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">새 비밀번호</label>
+                        <input type="password" id="newPassword" name="newPassword" required minlength="6">
+                        <div class="hint">최소 6자 이상 입력하세요</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmNewPassword">새 비밀번호 확인</label>
+                        <input type="password" id="confirmNewPassword" name="confirmNewPassword" required>
+                    </div>
+                    <button type="submit" class="btn-submit">변경하기</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 닉네임 수정 관련
+        function toggleNicknameEdit(show) {
+            document.getElementById('nicknameText').style.display = show ? 'none' : 'inline';
+            document.getElementById('btnEditNickname').style.display = show ? 'none' : 'inline';
+            document.getElementById('nicknameEditGroup').style.display = show ? 'flex' : 'none';
+            if (show) {
+                document.getElementById('nicknameInput').focus();
+            }
+        }
+
+        async function confirmNickname() {
+            const newNickname = document.getElementById('nicknameInput').value.trim();
+            const currentNickname = document.getElementById('nicknameText').textContent;
+
+            if (newNickname === currentNickname) {
+                toggleNicknameEdit(false);
+                return;
+            }
+
+            if (newNickname.length < 2) {
+                alert('닉네임은 최소 2자 이상이어야 합니다.');
+                return;
+            }
+
+            if (confirm('닉네임을 변경하시겠습니까?')) {
+                try {
+                    const response = await fetch('/api/auth/update-nickname', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ nickname: newNickname }),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        alert(data.message);
+                        document.getElementById('nicknameText').textContent = newNickname;
+                        toggleNicknameEdit(false);
+                    } else {
+                        alert(data.message || '닉네임 변경에 실패했습니다.');
+                    }
+                } catch (error) {
+                    alert('서버 오류가 발생했습니다.');
+                }
+            }
+        }
+
+        const pwModal = document.getElementById('pwModal');
+        const changePwForm = document.getElementById('changePwForm');
+        const messageEl = document.getElementById('pwMessage');
+
+        function openPwModal() {
+            pwModal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePwModal() {
+            pwModal.classList.remove('show');
+            document.body.style.overflow = '';
+            changePwForm.reset();
+            messageEl.className = 'message';
+            messageEl.textContent = '';
+        }
+
+        // 모달 바깥 클릭 시 닫기
+        window.onclick = function(event) {
+            if (event.target == pwModal) {
+                closePwModal();
+            }
+        }
+
+        if (changePwForm) {
+            changePwForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+                if (newPassword !== confirmNewPassword) {
+                    messageEl.textContent = '새 비밀번호가 일치하지 않습니다.';
+                    messageEl.className = 'message error show';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/auth/change-password', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ currentPassword, newPassword }),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        messageEl.textContent = data.message;
+                        messageEl.className = 'message success show';
+                        setTimeout(() => {
+                            closePwModal();
+                        }, 1500);
+                    } else {
+                        messageEl.textContent = data.message || '비밀번호 변경에 실패했습니다.';
+                        messageEl.className = 'message error show';
+                    }
+                } catch (error) {
+                    messageEl.textContent = '서버 오류가 발생했습니다.';
+                    messageEl.className = 'message error show';
+                }
+            });
+        }
+    </script>
 </body>
 </html>
