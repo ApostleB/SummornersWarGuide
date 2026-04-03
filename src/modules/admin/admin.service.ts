@@ -5,6 +5,11 @@ import { Repository } from "typeorm";
 import { Attack } from "../game/entities/attack.entity";
 import { DtlCd } from "../code/entities/dtl-cd.entity";
 
+import { Member, MemberStatus } from "../auth/entities/member.entity";
+import { MemberLog } from "../auth/entities/member-log.entity";
+import * as bcrypt from "bcrypt";
+import { In, Not } from "typeorm";
+
 @Injectable()
 export class AdminService {
   constructor(
@@ -14,7 +19,104 @@ export class AdminService {
     private attackRepository: Repository<Attack>,
     @InjectRepository(DtlCd)
     private dtlCdRepository: Repository<DtlCd>,
+    @InjectRepository(Member)
+    private memberRepository: Repository<Member>,
+    @InjectRepository(MemberLog)
+    private memberLogRepository: Repository<MemberLog>,
   ) {}
+
+  async getPendingMembers(): Promise<Member[]> {
+    return this.memberRepository.find({
+      where: {
+        status: In([MemberStatus.WAIT, MemberStatus.REJECT, MemberStatus.FAIL]),
+      },
+      order: { inputDt: "DESC" },
+    });
+  }
+
+  async updateMemberStatus(memberId: string, status: MemberStatus): Promise<void> {
+    await this.memberRepository.update(memberId, { status });
+  }
+
+  async getAllMembers(): Promise<Member[]> {
+    return this.memberRepository.find({
+      where: {
+        status: Not(In([MemberStatus.WAIT, MemberStatus.REJECT, MemberStatus.FAIL])),
+      },
+      order: { inputDt: "DESC" },
+    });
+  }
+
+  async resetMemberPassword(memberId: string): Promise<void> {
+    const defaultPwConfig = await this.dtlCdRepository.findOne({
+      where: { code: "DEFAULT_PASSWORD" },
+    });
+
+    if (!defaultPwConfig) {
+      throw new Error("초기 비밀번호 설정(DEFAULT_PASSWORD)을 찾을 수 없습니다.");
+    }
+
+    const hashedPassword = await bcrypt.hash(defaultPwConfig.codeValue, 10);
+    await this.memberRepository.update(memberId, {
+      memberPw: hashedPassword,
+      loginCnt: 0, // 잠금 해제 효과
+    });
+  }
+
+  async kickMember(memberId: string): Promise<void> {
+    await this.memberRepository.delete(memberId);
+  }
+
+  async getMemberLogs(memberId: string): Promise<MemberLog[]> {
+    return this.memberLogRepository.find({
+      where: { memberId },
+      order: { inputDt: "DESC" },
+      take: 50,
+    });
+  }
+
+  async deleteDefence(defenceId: string): Promise<void> {
+    await this.attackRepository.delete({ defenceId });
+    await this.defenceRepository.delete(defenceId);
+  }
+
+  async deleteAttack(attackId: string): Promise<void> {
+    await this.attackRepository.delete(attackId);
+  }
+
+  async updateAttack(attackId: string, updateData: any): Promise<void> {
+    const attack = await this.attackRepository.findOne({ where: { attackId } });
+    if (!attack) return;
+
+    const monsterTypeCodes = await this.dtlCdRepository.find({
+      where: { grpCd: "MONSTER_TYPE_CODE" },
+    });
+
+    const findTypeByTitle = (title: string): DtlCd | null => {
+      if (!title) return null;
+      return monsterTypeCodes.find((dtlCd) => dtlCd.codeTitle === title) || null;
+    };
+
+    const getTypeTitle = (name: string) => (name ? name.slice(0, 1) : null);
+
+    if (updateData.monsterA !== undefined) {
+      attack.monsterA = updateData.monsterA;
+      attack.monsterAType = findTypeByTitle(getTypeTitle(updateData.monsterA));
+    }
+    if (updateData.monsterB !== undefined) {
+      attack.monsterB = updateData.monsterB;
+      attack.monsterBType = findTypeByTitle(getTypeTitle(updateData.monsterB));
+    }
+    if (updateData.monsterC !== undefined) {
+      attack.monsterC = updateData.monsterC;
+      attack.monsterCType = findTypeByTitle(getTypeTitle(updateData.monsterC));
+    }
+    if (updateData.deckDesc !== undefined) {
+      attack.deckDesc = updateData.deckDesc;
+    }
+
+    await this.attackRepository.save(attack);
+  }
 
   async defenceArraySave(xlsxArr: Array<any>): Promise<string> {
     // MONSTER_TYPE_CODE 그룹의 DTL_CD를 한 번에 조회하여 캐싱
@@ -120,4 +222,62 @@ export class AdminService {
 
     return "Processing completed";
   }
+//
+//   async getDefenceList(keyword: string): Promise<any> {
+//     const query = this.defenceRepository
+//       .createQueryBuilder("defence")
+//       .leftJoinAndSelect("defence.monsterAType", "mAType")
+//       .leftJoinAndSelect("defence.monsterBType", "mBType")
+//       .leftJoinAndSelect("defence.monsterCType", "mCType")
+//       .leftJoin("defence.attackList", "attack")
+//       .addSelect("COUNT(attack.attackId)", "attackCount")
+//       .addSelect("MAX(attack.inputDt)", "lastAttackDate")
+//       .groupBy("defence.defenceId")
+//       .addGroupBy("mAType.code")
+//       .addGroupBy("mBType.code")
+//       .addGroupBy("mCType.code");
+//
+//     if (keyword) {
+//       query.where(
+//         "(defence.monsterA LIKE :keyword OR defence.monsterB LIKE :keyword OR defence.monsterC LIKE :keyword)",
+//         { keyword: `%${keyword}%` },
+//       );
+//       query.addSelect(
+//         "CASE WHEN defence.monsterA LIKE :keyword THEN 0 ELSE 1 END",
+//         "matchA",
+//       );
+//       query.addSelect(
+//         "CASE WHEN defence.monsterB LIKE :keyword THEN 0 ELSE 1 END",
+//         "matchB",
+//       );
+//       query.addSelect(
+//         "CASE WHEN defence.monsterC LIKE :keyword THEN 0 ELSE 1 END",
+//         "matchC",
+//       );
+//       query.orderBy("matchA", "ASC");
+//       query.addOrderBy("matchB", "ASC");
+//       query.addOrderBy("matchC", "ASC");
+//     }
+//
+//     query.addOrderBy("lastAttackDate", "DESC");
+//     query.addOrderBy("defence.inputDt", "DESC");
+//
+//     const { entities, raw } = await query.getRawAndEntities();
+//
+//     // raw 결과에서 attackCount를 매핑
+//     const attackCountMap = new Map<string, number>();
+//     raw.forEach((r) => {
+//       attackCountMap.set(r.defence_DEFENCE_ID, parseInt(r.attackCount) || 0);
+//     });
+//
+//     return {
+//       defenceList: entities.map((defence) => ({
+//         defenceId: defence.defenceId,
+//         defenceMonsterA: this.mapMonsterInfo(defence.monsterA, defence.monsterAType),
+//         defenceMonsterB: this.mapMonsterInfo(defence.monsterB, defence.monsterBType),
+//         defenceMonsterC: this.mapMonsterInfo(defence.monsterC, defence.monsterCType),
+//         attackCount: attackCountMap.get(defence.defenceId) || 0,
+//       })),
+//     };
+//   }
 }

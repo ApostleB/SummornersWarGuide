@@ -118,6 +118,29 @@ body {
     color: #667eea;
 }
 
+.reset-btn {
+    position: absolute;
+    right: 40px; /* search-btn 왼쪽 */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    transition: background 0.2s, color 0.2s;
+}
+
+.reset-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #666;
+}
+
 /* Suggestions List */
 .suggestions-list {
     position: absolute;

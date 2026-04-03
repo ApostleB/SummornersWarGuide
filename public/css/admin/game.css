@@ -6,13 +6,14 @@
     justify-content: space-between;
     align-items: center;
     gap: 16px;
-    margin-top: 20px;
+    margin-top: 24px;
     flex-wrap: wrap;
 }
 
 .header-actions .search-container {
     flex: 1;
-    max-width: 400px;
+    max-width: 500px;
+    width: auto; /* Override layout.css 80% */
 }
 
 .btn-group {
@@ -139,65 +140,27 @@
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
-
-/* Search Container */
-.search-container {
-    display: flex;
-    gap: 8px;
-}
-
-.search-input {
-    flex: 1;
-    padding: 10px 16px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: border-color 0.2s;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: #667eea;
-}
-
-.header-actions .search-btn {
-    position: static;
-    transform: none;
-    width: auto;
-    height: auto;
-    padding: 10px 16px;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-}
-
-.header-actions .search-btn:hover {
-    background: #5a6fd6;
-    color: white;
-}
-
 /* Responsive */
 @media (max-width: 600px) {
     .header-actions {
         flex-direction: column;
-        align-items: stretch;
+        align-items: center;
+        text-align: center;
     }
 
     .header-actions .search-container {
+        width: 100%;
         max-width: 100%;
+        margin-bottom: 8px;
     }
 
     .btn-group {
-        justify-content: flex-end;
+        justify-content: center;
+        width: 100%;
     }
 
     .defence-card {
+...
         flex-direction: column;
         align-items: stretch;
     }

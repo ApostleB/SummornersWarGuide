@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
+    <title>관리자 - 회원 관리</title>
+    <link rel="stylesheet" href="/public/css/common/layout.css">
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/admin.css">
+    <style>
+        .admin-section {
+            margin-bottom: 40px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            color: #2d3748;
+        }
+        .member-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 12px;
+            overflow: hidden;
+            border: 1px solid #edf2f7;
+        }
+        .member-header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .member-info-brief {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .member-name-tag {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1a202c;
+        }
+        .member-status-badge {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .status-wait { background: #feebc8; color: #975a16; }
+        .status-success { background: #c6f6d5; color: #22543d; }
+        .status-reject { background: #fff5f5; color: #c53030; }
+        
+        .member-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-approve { background: #48bb78; color: white; }
+        .btn-reject { background: #f56565; color: white; }
+        .btn-reset { background: #667eea; color: white; }
+        .btn-kick { background: #718096; color: white; }
+        
+        .member-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: #f8fafc;
+            border-top: 1px solid #edf2f7;
+        }
+        .details-inner {
+            padding: 20px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .info-item label {
+            display: block;
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 4px;
+        }
+        .info-item span {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .log-container {
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .log-table th {
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 8px 12px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+        }
+        .log-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .chevron {
+            transition: transform 0.3s;
+            color: #a0aec0;
+        }
+        .member-card.open .chevron {
+            transform: rotate(180deg);
+        }
+        .member-card.open .member-details {
+            max-height: 1000px;
+        }
+    </style>
+</head>
+<body>
+<%- include('../partials/header') %>
+
+<main class="main-content">
+    <div class="admin-container">
+        <div class="page-header">
+            <h1 class="page-title">회원 관리</h1>
+            <p class="page-desc">가입 신청 승인 및 회원 정보를 관리합니다</p>
+        </div>
+
+        <!-- 1. 가입 신청 리스트 -->
+        <section class="admin-section">
+            <h2 class="section-title">가입 신청 대기</h2>
+            <div id="pendingMemberList">
+                <div class="loading-inline">불러오는 중...</div>
+            </div>
+        </section>
+
+        <!-- 2. 회원 목록 -->
+        <section class="admin-section">
+            <h2 class="section-title">전체 회원 관리</h2>
+            <div id="activeMemberList">
+                <div class="loading-inline">불러오는 중...</div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchPendingMembers();
+        fetchActiveMembers();
+    });
+
+    async function fetchPendingMembers() {
+        try {
+            const response = await fetch('/api/admin/members/pending', { credentials: 'include' });
+            const data = await response.json();
+            renderPendingMembers(data.members);
+        } catch (error) {
+            console.error('Failed to fetch pending members:', error);
+        }
+    }
+
+    async function fetchActiveMembers() {
+        try {
+            const response = await fetch('/api/admin/members', { credentials: 'include' });
+            const data = await response.json();
+            renderActiveMembers(data.members);
+        } catch (error) {
+            console.error('Failed to fetch active members:', error);
+        }
+    }
+
+    function renderPendingMembers(members) {
+        const container = document.getElementById('pendingMemberList');
+        if (!members || members.length === 0) {
+            container.innerHTML = '<div class="no-results">가입 신청 내역이 없습니다.</div>';
+            return;
+        }
+
+        container.innerHTML = members.map(m => `
+            <div class="member-card">
+                <div class="member-header" style="cursor: default;">
+                    <div class="member-info-brief">
+                        <span class="member-name-tag">${m.memberNickname} (${m.memberName})</span>
+                        <span class="member-status-badge status-${m.status.toLowerCase()}">${m.status}</span>
+                        <span style="font-size: 12px; color: #a0aec0;">신청일: ${new Date(m.inputDt).toLocaleDateString()}</span>
+                    </div>
+                    <div class="member-actions">
+                        <button class="btn-small btn-approve" onclick="updateStatus('${m.memberId}', 'SUCCESS')">승인</button>
+                        <button class="btn-small btn-reject" onclick="updateStatus('${m.memberId}', 'REJECT')">거절</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderActiveMembers(members) {
+        const container = document.getElementById('activeMemberList');
+        if (!members || members.length === 0) {
+            container.innerHTML = '<div class="no-results">등록된 회원이 없습니다.</div>';
+            return;
+        }
+
+        container.innerHTML = members.map(m => `
+            <div class="member-card" id="member-card-${m.memberId}">
+                <div class="member-header" onclick="toggleMemberAccordion('${m.memberId}')">
+                    <div class="member-info-brief">
+                        <span class="member-name-tag">${m.memberNickname} (${m.memberName})</span>
+                        <span class="member-status-badge status-success">${m.status}</span>
+                        <span style="font-size: 12px; color: #a0aec0;">레벨: ${m.memberLevel} | 로그인: ${m.loginCnt}회</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="chevron">▼</span>
+                    </div>
+                </div>
+                <div class="member-details">
+                    <div class="details-inner">
+                        <div style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px;">
+                            <div class="info-grid" style="margin-bottom:0; flex:1;">
+                                <div class="info-item"><label>ID</label><span>${m.memberName}</span></div>
+                                <div class="info-item"><label>닉네임</label><span>${m.memberNickname}</span></div>
+                                <div class="info-item"><label>가입일</label><span>${new Date(m.inputDt).toLocaleString()}</span></div>
+                                <div class="info-item"><label>최근 로그인</label><span>${m.loginDt ? new Date(m.loginDt).toLocaleString() : '기록 없음'}</span></div>
+                            </div>
+                            <div class="member-actions">
+                                <button class="btn-small btn-reset" onclick="resetPassword('${m.memberId}')">비밀번호 초기화</button>
+                                <button class="btn-small btn-kick" onclick="kickMember('${m.memberId}')">강퇴</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display:flex; justify-content: space-between; align-items: center;">
+                            <h4 style="font-size: 14px; color: #4a5568;">최근 로그인 기록</h4>
+                            <button class="btn-small" style="background:#edf2f7; color:#4a5568;" onclick="fetchLogs('${m.memberId}')">기록 새로고침</button>
+                        </div>
+                        <div class="log-container" id="log-container-${m.memberId}">
+                            <div style="padding: 20px; text-align: center; color: #a0aec0; font-size: 13px;">기록을 불러오려면 버튼을 눌러주세요.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function toggleMemberAccordion(memberId) {
+        const card = document.getElementById(`member-card-${memberId}`);
+        const isOpen = card.classList.contains('open');
+        
+        // 다른 열린 카드 닫기
+        document.querySelectorAll('.member-card.open').forEach(c => c.classList.remove('open'));
+        
+        if (!isOpen) {
+            card.classList.add('open');
+            // 열릴 때 자동으로 로그 로드
+            fetchLogs(memberId);
+        }
+    }
+
+    async function updateStatus(memberId, status) {
+        if (!confirm(`회원 상태를 ${status === 'SUCCESS' ? '승인' : '거절'}하시겠습니까?`)) return;
+        try {
+            const response = await fetch(`/api/admin/members/${memberId}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status }),
+                credentials: 'include'
+            });
+            if (response.ok) {
+                alert('처리되었습니다.');
+                fetchPendingMembers();
+                fetchActiveMembers();
+            }
+        } catch (error) {
+            alert('오류가 발생했습니다.');
+        }
+    }
+
+    async function resetPassword(memberId) {
+        if (!confirm('비밀번호를 초기비밀번호로 재설정하시겠습니까?')) return;
+        try {
+            const response = await fetch(`/api/admin/members/${memberId}/password-reset`, {
+                method: 'PUT',
+                credentials: 'include'
+            });
+            if (response.ok) {
+                alert('비밀번호가 초기화되었습니다.');
+            }
+        } catch (error) {
+            alert('오류가 발생했습니다.');
+        }
+    }
+
+    async function kickMember(memberId) {
+        if (!confirm('정말 이 회원을 강퇴하시겠습니까? 모든 정보가 삭제됩니다.')) return;
+        try {
+            const response = await fetch(`/api/admin/members/${memberId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (response.ok) {
+                alert('강퇴 처리되었습니다.');
+                fetchActiveMembers();
+            }
+        } catch (error) {
+            alert('오류가 발생했습니다.');
+        }
+    }
+
+    async function fetchLogs(memberId) {
+        const container = document.getElementById(`log-container-${memberId}`);
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #667eea;">불러오는 중...</div>';
+        
+        try {
+            const response = await fetch(`/api/admin/members/${memberId}/logs`, { credentials: 'include' });
+            const data = await response.json();
+            renderLogs(memberId, data.logs);
+        } catch (error) {
+            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #f56565;">로그를 불러오지 못했습니다.</div>';
+        }
+    }
+
+    function renderLogs(memberId, logs) {
+        const container = document.getElementById(`log-container-${memberId}`);
+        if (!logs || logs.length === 0) {
+            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #a0aec0;">로그 기록이 없습니다.</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>일시</th>
+                        <th>유형</th>
+                        <th>내용</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${logs.map(log => `
+                        <tr>
+                            <td style="white-space:nowrap;">${new Date(log.inputDt).toLocaleString()}</td>
+                            <td><span class="member-status-badge" style="background:#ebf8ff; color:#2b6cb0;">${log.logType}</span></td>
+                            <td>${log.logContent}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+</script>
+</body>
+</html>

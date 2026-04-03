@@ -9,6 +9,36 @@
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/admin.css">
     <link rel="stylesheet" href="/public/css/admin/game.css">
+    <style>
+        .edit-pill-input {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 2px solid #e8eeff;
+            border-radius: 8px;
+            padding: 4px 10px;
+            flex: 1;
+            min-width: 100px;
+            transition: border-color 0.2s;
+        }
+        .edit-pill-input:focus-within {
+            border-color: #667eea;
+        }
+        .edit-pill-input input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            background: transparent;
+        }
+        .chevron {
+            font-size: 14px;
+            color: #aaa;
+            transition: transform 0.3s ease;
+        }
+    </style>
 </head>
 <body>
 <%- include('../partials/header') %>
@@ -22,6 +52,12 @@
         <div class="header-actions">
             <div class="search-container">
                 <input type="text" class="search-input" id="searchInput" placeholder="몬스터 이름 검색..." autocomplete="off">
+                <button type="button" class="reset-btn" id="resetBtn" aria-label="초기화" style="display: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
                 <button type="button" class="search-btn" id="searchBtn" aria-label="검색">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
@@ -46,11 +82,23 @@
     // 검색 기능
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    searchInput.addEventListener('input', () => {
+        resetBtn.style.display = searchInput.value.length > 0 ? 'flex' : 'none';
+    });
 
     searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') fetchDefenceList();
     });
     searchBtn.addEventListener('click', () => fetchDefenceList());
+
+    resetBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        resetBtn.style.display = 'none';
+        fetchDefenceList();
+        searchInput.focus();
+    });
 
     // 파일 업로드 기능
     const fileInput = document.getElementById('fileInput');
@@ -121,21 +169,179 @@
         }
 
         container.innerHTML = defenceList.map(defence => `
-            <div class="defence-card" data-id="${defence.defenceId}">
-                <div class="card-content">
-                    <div class="monster-deck">
-                        ${renderMonster(defence.defenceMonsterA)}
-                        ${renderMonster(defence.defenceMonsterB)}
-                        ${renderMonster(defence.defenceMonsterC)}
+            <div class="defence-card admin-card" id="card-${defence.defenceId}" data-id="${defence.defenceId}" style="flex-direction: column; align-items: stretch; cursor: default;">
+                <div class="card-header-wrapper" onclick="toggleAdminAccordion('${defence.defenceId}')" style="display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer; user-select: none;">
+                    <div class="card-content">
+                        <div class="monster-deck">
+                            ${renderMonster(defence.defenceMonsterA)}
+                            ${renderMonster(defence.defenceMonsterB)}
+                            ${renderMonster(defence.defenceMonsterC)}
+                        </div>
+                        <span class="attack-count">공략 ${defence.attackCount}건</span>
                     </div>
-                    <span class="attack-count">공략 ${defence.attackList.length}건</span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="card-actions" onclick="event.stopPropagation()">
+                            <button class="action-btn delete-btn" onclick="deleteDefence('${defence.defenceId}')">삭제</button>
+                        </div>
+                        <span class="chevron" id="chevron-${defence.defenceId}">▼</span>
+                    </div>
                 </div>
-                <div class="card-actions">
-                    <button class="action-btn edit-btn" onclick="editDefence('${defence.defenceId}')">수정</button>
-                    <button class="action-btn delete-btn" onclick="deleteDefence('${defence.defenceId}')">삭제</button>
+                <div class="accordion-body" id="body-${defence.defenceId}" style="max-height: 0; overflow: hidden; transition: max-height 0.3s ease;">
+                    <div class="admin-attack-list" id="attack-list-${defence.defenceId}" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                        <div class="loading-inline">공략 정보를 불러오는 중...</div>
+                    </div>
                 </div>
             </div>
         `).join('');
+    }
+
+    async function toggleAdminAccordion(defenceId) {
+        const card = document.getElementById(`card-${defenceId}`);
+        const body = document.getElementById(`body-${defenceId}`);
+        const chevron = document.getElementById(`chevron-${defenceId}`);
+        const isOpen = card.classList.contains('open');
+
+        if (isOpen) {
+            card.classList.remove('open');
+            body.style.maxHeight = '0px';
+            chevron.style.transform = 'rotate(0deg)';
+        } else {
+            card.classList.add('open');
+            body.style.maxHeight = body.scrollHeight + 'px';
+            chevron.style.transform = 'rotate(180deg)';
+
+            // 데이터가 로딩 전이라면 불러오기
+            const listContainer = document.getElementById(`attack-list-${defenceId}`);
+            if (listContainer.querySelector('.loading-inline')) {
+                fetchAttackList(defenceId);
+            }
+        }
+    }
+
+    async function fetchAttackList(defenceId) {
+        try {
+            const response = await fetch(`/api/game/defence/${defenceId}`, { credentials: 'include' });
+            const data = await response.json();
+            renderAttackList(defenceId, data.attackList);
+
+            // 내용물 길이에 맞춰 max-height 재조정
+            const card = document.getElementById(`card-${defenceId}`);
+            const body = document.getElementById(`body-${defenceId}`);
+            if (card.classList.contains('open')) {
+                body.style.maxHeight = body.scrollHeight + 'px';
+            }
+        } catch (error) {
+            document.getElementById(`attack-list-${defenceId}`).innerHTML = '<div class="no-results">공략 정보를 불러오지 못했습니다.</div>';
+        }
+    }
+
+    function renderAttackList(defenceId, attackList) {
+        const container = document.getElementById(`attack-list-${defenceId}`);
+        if (!attackList || attackList.length === 0) {
+            container.innerHTML = '<div class="no-results">등록된 공략이 없습니다.</div>';
+            return;
+        }
+
+        container.innerHTML = attackList.map((attack, index) => `
+            <div class="attack-item-admin" id="attack-item-${attack.attackId}" style="background: #f9f9f9; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+                <div class="attack-view-mode" id="attack-view-${attack.attackId}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="flex: 1;">
+                            <div style="display:flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                                <span style="font-weight: bold; color: #667eea; display: flex; align-items: center;">#${index + 1}</span>
+                                ${renderMonster(attack.attackMonsterA)}
+                                ${renderMonster(attack.attackMonsterB)}
+                                ${renderMonster(attack.attackMonsterC)}
+                            </div>
+                            <div style="font-size: 13px; color: #666; background: white; padding: 8px; border-radius: 4px; border: 1px solid #eee;">
+                                ${attack.deckDesc || '설명 없음'}
+                            </div>
+                        </div>
+                        <div class="card-actions" style="margin-left: 15px;">
+                            <button class="action-btn edit-btn" style="padding: 4px 10px; font-size: 12px;" onclick="enableAttackEdit('${attack.attackId}')">수정</button>
+                            <button class="action-btn delete-btn" style="padding: 4px 10px; font-size: 12px;" onclick="deleteAttack('${attack.attackId}', '${defenceId}')">삭제</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="attack-edit-mode" id="attack-edit-${attack.attackId}" style="display: none;">
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <div class="edit-pill-input">
+                                <input type="text" id="edit-monA-${attack.attackId}" value="${attack.attackMonsterA?.monsterName || ''}" placeholder="몬스터A">
+                            </div>
+                            <div class="edit-pill-input">
+                                <input type="text" id="edit-monB-${attack.attackId}" value="${attack.attackMonsterB?.monsterName || ''}" placeholder="몬스터B">
+                            </div>
+                            <div class="edit-pill-input">
+                                <input type="text" id="edit-monC-${attack.attackId}" value="${attack.attackMonsterC?.monsterName || ''}" placeholder="몬스터C">
+                            </div>
+                        </div>
+                        <textarea id="edit-desc-${attack.attackId}" style="width: 100%; height: 60px; padding: 8px; border: 1px solid #e8eeff; border-radius: 8px; resize: none; font-size: 13px; background: #fff;">${attack.deckDesc || ''}</textarea>
+                        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                            <button class="action-btn" style="background: #eee; color: #333; border: 1px solid #ddd;" onclick="disableAttackEdit('${attack.attackId}')">취소</button>
+                            <button class="action-btn" style="background: #667eea; color: white;" onclick="saveAttackEdit('${attack.attackId}', '${defenceId}')">저장</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function enableAttackEdit(attackId) {
+        document.getElementById(`attack-view-${attackId}`).style.display = 'none';
+        document.getElementById(`attack-edit-${attackId}`).style.display = 'block';
+    }
+
+    function disableAttackEdit(attackId) {
+        document.getElementById(`attack-view-${attackId}`).style.display = 'block';
+        document.getElementById(`attack-edit-${attackId}`).style.display = 'none';
+    }
+
+    async function saveAttackEdit(attackId, defenceId) {
+        const monsterA = document.getElementById(`edit-monA-${attackId}`).value.trim();
+        const monsterB = document.getElementById(`edit-monB-${attackId}`).value.trim();
+        const monsterC = document.getElementById(`edit-monC-${attackId}`).value.trim();
+        const deckDesc = document.getElementById(`edit-desc-${attackId}`).value.trim();
+
+        try {
+            const response = await fetch(`/api/admin/attack/${attackId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ monsterA, monsterB, monsterC, deckDesc }),
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                alert('저장되었습니다.');
+                fetchAttackList(defenceId);
+            } else {
+                alert('저장에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Failed to save attack:', error);
+            alert('오류가 발생했습니다.');
+        }
+    }
+
+    async function deleteAttack(attackId, defenceId) {
+        if (!confirm('공략을 삭제하시겠습니까?')) return;
+
+        try {
+            const response = await fetch(`/api/admin/attack/${attackId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                alert('삭제되었습니다.');
+                fetchAttackList(defenceId);
+            } else {
+                alert('삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Failed to delete attack:', error);
+            alert('오류가 발생했습니다.');
+        }
     }
 
     function renderMonster(monster) {
