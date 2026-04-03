@@ -13,6 +13,11 @@ export class SignupDto {
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(2)
+  nickname: string;
+
+  @IsString()
+  @IsNotEmpty()
   @MinLength(6)
   password: string;
 

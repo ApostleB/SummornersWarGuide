@@ -58,21 +58,16 @@ body {
 
 .logo,img{
     width: 100px;
+    height: 40px;
 }
 
-.deckLogo {
-    height: 10%;
-    width: 20%;
-    cursor: pointer;
-}
-
-.deckLogo:hover {
+.deck-logo:hover {
     opacity: 0.85;
 }
 
-.deckLogo,img{
-    width: 100px;
-    height: 50px;
+.deck-logo,img{
+    width: 70px;
+    height: 40px;
 }
 /* Search Bar */
 .search-container {

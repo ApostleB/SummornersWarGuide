@@ -33,5 +33,4 @@ export class GameController {
     }
     return res.status(HttpStatus.OK).json(defence);
   }
-
 }

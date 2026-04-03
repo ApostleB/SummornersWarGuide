@@ -6,10 +6,16 @@ import {
   BeforeInsert,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
-
+export enum SignupMessage {
+  SUCCESS = "가입이 승인되었습니다.",
+  REJECT = "인증코드가 일치하지 않습니다..",
+  WAIT = "가입에 성공했습니다.\n관리자 승인대기중입니다.",
+}
 export enum MemberStatus {
   SUCCESS = "SUCCESS",
   CONFIRM = "CONFIRM",
+  REJECT = "REJECT",
+  WAIT = "WAIT",
   FAIL = "FAIL",
 }
 
@@ -20,6 +26,14 @@ export class Member {
 
   @Column({ name: "MEMBER_NAME", type: "varchar", length: 100, unique: true })
   memberName: string;
+
+  @Column({
+    name: "MEMBER_NICKNAME",
+    type: "varchar",
+    length: 100,
+    unique: true,
+  })
+  memberNickname: string;
 
   @Column({ name: "MEMBER_PW", type: "varchar", length: 500 })
   memberPw: string;

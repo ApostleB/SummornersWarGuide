@@ -10,7 +10,7 @@ import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import * as bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
-import { Member, MemberStatus } from "./entities/member.entity";
+import { Member, MemberStatus, SignupMessage } from "./entities/member.entity";
 import { MemberLog, LogType } from "./entities/member-log.entity";
 import { DtlCd, YesNo } from "../code/entities/dtl-cd.entity";
 import { SignupDto } from "./dto/signup.dto";
@@ -32,69 +32,58 @@ export class AuthService {
   ) {}
 
   async signup(signupDto: SignupDto) {
-    const { password, name, regCode } = signupDto;
+    const { password, name, regCode, nickname } = signupDto;
 
     // 아이디 중복 체크
-    const existingMember = await this.memberRepository.findOne({
+    const existingMember = await this.memberRepository.exists({
       where: { memberName: name },
     });
     if (existingMember) {
       throw new BadRequestException("이미 등록된 아이디입니다.");
     }
 
-    // 가입 승인 필요 여부 확인 (REG001)
-    const regApprovalCode = await this.dtlCdRepository.findOne({
-      where: { grpCd: "MEM_REG", code: "REG001", useYn: YesNo.Y },
-    });
-
-    // 가입 코드 검사 필요 여부 확인 (REG002)
+    // 가입 코드 확인
     const regCodeCheck = await this.dtlCdRepository.findOne({
-      where: { grpCd: "MEM_REG", code: "REG002", useYn: YesNo.Y },
+      where: { code: "REG001", useYn: YesNo.Y },
     });
 
-    let status = MemberStatus.CONFIRM;
+    let regMessage = null;
+    let status = null;
 
-    // 가입 코드 검사 로직
-    if (regCodeCheck && regCodeCheck.codeValue === "Y") {
-      if (regCode && regCode === regCodeCheck.codeAttr1) {
-        // 가입 코드 일치 -> SUCCESS
+    if (regCodeCheck !== null) {
+      const codeCheck = regCodeCheck.codeValue === regCode;
+      if (codeCheck) {
+        regMessage = SignupMessage.SUCCESS;
         status = MemberStatus.SUCCESS;
-      } else if (regCode) {
-        // 가입 코드 불일치 -> FAIL
-        throw new BadRequestException("가입 코드가 올바르지 않습니다.");
+      } else {
+        regMessage = SignupMessage.REJECT;
+        status = MemberStatus.REJECT;
       }
     } else {
-      // 가입 코드 검사 PASS (USE_YN이 N이거나 CODE_VALUE가 Y가 아닌 경우)
-      if (regApprovalCode && regApprovalCode.codeValue === "Y") {
-        // 관리자 승인 필요
-        status = MemberStatus.CONFIRM;
-      } else {
-        status = MemberStatus.SUCCESS;
-      }
+      regMessage = SignupMessage.WAIT;
+      status = MemberStatus.WAIT;
     }
 
-    // 비밀번호 해시
+    if (status !== MemberStatus.SUCCESS && status !== MemberStatus.WAIT) {
+      throw new BadRequestException(regMessage);
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 멤버 생성
     const member = this.memberRepository.create({
       memberId: uuidv4(),
       memberName: name,
       memberPw: hashedPassword,
+      memberNickname: nickname,
       regCode: regCode || null,
       status,
     });
 
     await this.memberRepository.save(member);
-
-    // 로그 기록
-    await this.createLog(member.memberId, LogType.SIGNUP, "SUCCESS");
+    await this.createLog(member.memberId, LogType.SIGNUP, status);
 
     return {
-      message:
-        status === MemberStatus.SUCCESS
-          ? "회원가입이 완료되었습니다."
-          : "회원가입 신청이 완료되었습니다. 관리자 승인 후 이용 가능합니다.",
+      message: regMessage,
       status,
     };
   }
