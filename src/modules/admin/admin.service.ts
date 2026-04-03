@@ -34,14 +34,19 @@ export class AdminService {
     });
   }
 
-  async updateMemberStatus(memberId: string, status: MemberStatus): Promise<void> {
+  async updateMemberStatus(
+    memberId: string,
+    status: MemberStatus,
+  ): Promise<void> {
     await this.memberRepository.update(memberId, { status });
   }
 
   async getAllMembers(): Promise<Member[]> {
     return this.memberRepository.find({
       where: {
-        status: Not(In([MemberStatus.WAIT, MemberStatus.REJECT, MemberStatus.FAIL])),
+        status: Not(
+          In([MemberStatus.WAIT, MemberStatus.REJECT, MemberStatus.FAIL]),
+        ),
       },
       order: { inputDt: "DESC" },
     });
@@ -49,11 +54,13 @@ export class AdminService {
 
   async resetMemberPassword(memberId: string): Promise<void> {
     const defaultPwConfig = await this.dtlCdRepository.findOne({
-      where: { code: "DEFAULT_PASSWORD" },
+      where: { grpCd: "MEMBER_MANAGE", code: "REG002" },
     });
 
     if (!defaultPwConfig) {
-      throw new Error("초기 비밀번호 설정(DEFAULT_PASSWORD)을 찾을 수 없습니다.");
+      throw new Error(
+        "초기 비밀번호 설정(DEFAULT_PASSWORD)을 찾을 수 없습니다.",
+      );
     }
 
     const hashedPassword = await bcrypt.hash(defaultPwConfig.codeValue, 10);
@@ -222,62 +229,4 @@ export class AdminService {
 
     return "Processing completed";
   }
-//
-//   async getDefenceList(keyword: string): Promise<any> {
-//     const query = this.defenceRepository
-//       .createQueryBuilder("defence")
-//       .leftJoinAndSelect("defence.monsterAType", "mAType")
-//       .leftJoinAndSelect("defence.monsterBType", "mBType")
-//       .leftJoinAndSelect("defence.monsterCType", "mCType")
-//       .leftJoin("defence.attackList", "attack")
-//       .addSelect("COUNT(attack.attackId)", "attackCount")
-//       .addSelect("MAX(attack.inputDt)", "lastAttackDate")
-//       .groupBy("defence.defenceId")
-//       .addGroupBy("mAType.code")
-//       .addGroupBy("mBType.code")
-//       .addGroupBy("mCType.code");
-//
-//     if (keyword) {
-//       query.where(
-//         "(defence.monsterA LIKE :keyword OR defence.monsterB LIKE :keyword OR defence.monsterC LIKE :keyword)",
-//         { keyword: `%${keyword}%` },
-//       );
-//       query.addSelect(
-//         "CASE WHEN defence.monsterA LIKE :keyword THEN 0 ELSE 1 END",
-//         "matchA",
-//       );
-//       query.addSelect(
-//         "CASE WHEN defence.monsterB LIKE :keyword THEN 0 ELSE 1 END",
-//         "matchB",
-//       );
-//       query.addSelect(
-//         "CASE WHEN defence.monsterC LIKE :keyword THEN 0 ELSE 1 END",
-//         "matchC",
-//       );
-//       query.orderBy("matchA", "ASC");
-//       query.addOrderBy("matchB", "ASC");
-//       query.addOrderBy("matchC", "ASC");
-//     }
-//
-//     query.addOrderBy("lastAttackDate", "DESC");
-//     query.addOrderBy("defence.inputDt", "DESC");
-//
-//     const { entities, raw } = await query.getRawAndEntities();
-//
-//     // raw 결과에서 attackCount를 매핑
-//     const attackCountMap = new Map<string, number>();
-//     raw.forEach((r) => {
-//       attackCountMap.set(r.defence_DEFENCE_ID, parseInt(r.attackCount) || 0);
-//     });
-//
-//     return {
-//       defenceList: entities.map((defence) => ({
-//         defenceId: defence.defenceId,
-//         defenceMonsterA: this.mapMonsterInfo(defence.monsterA, defence.monsterAType),
-//         defenceMonsterB: this.mapMonsterInfo(defence.monsterB, defence.monsterBType),
-//         defenceMonsterC: this.mapMonsterInfo(defence.monsterC, defence.monsterCType),
-//         attackCount: attackCountMap.get(defence.defenceId) || 0,
-//       })),
-//     };
-//   }
 }
