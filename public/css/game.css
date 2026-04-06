@@ -220,9 +220,10 @@
     border: 1px solid #e8eeff;
     border-radius: 10px;
     padding: 20px;
-    height: 300px;
+    height: 320px;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .slider-header {
@@ -230,6 +231,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
+    flex-shrink: 0;
 }
 
 .header-right {
@@ -292,17 +294,33 @@
 }
 
 /* Deck Description */
+.deck-desc-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .deck-desc-box {
-    background: #fff;
-    border-radius: 6px;
-    padding: 12px 14px;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 10px 12px;
     color: #4a5568;
     font-size: 13px;
-    line-height: 1.6;
+    line-height: 1.5;
     white-space: pre-wrap;
-    height: calc(13px * 1.6 * 5 + 24px); /* 5줄 + padding */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    max-height: 80px;
     overflow-y: auto;
-    flex-shrink: 0;
+}
+
+.deck-desc-box strong {
+    color: #667eea;
+    font-weight: 600;
+    margin-right: 6px;
+}
+
+.deck-desc-box:nth-child(2) strong {
+    color: #48bb78;
 }
 
 .deck-desc-box::-webkit-scrollbar {
@@ -318,12 +336,12 @@
     color: #aaa;
     font-size: 13px;
     font-style: italic;
-    height: calc(13px * 1.6 * 5 + 24px); /* deck-desc-box와 동일 높이 */
+    padding: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #fff;
-    border-radius: 6px;
+    background: #f8fafc;
+    border-radius: 8px;
     flex-shrink: 0;
 }
 
@@ -331,8 +349,10 @@
 .slider-nav-buttons {
     display: flex;
     justify-content: space-between;
-    margin-top: 16px;
+    margin-top: auto;
+    padding-top: 16px;
     gap: 8px;
+    flex-shrink: 0;
 }
 
 .slider-nav-btn {
@@ -388,6 +408,9 @@
 
 .attack-deck-content {
     animation: fadeIn 0.25s ease;
+    flex: 1;
+    overflow-y: clip;
+    min-height: 0;
 }
 
 /* Attack List Container */

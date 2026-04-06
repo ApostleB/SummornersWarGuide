@@ -222,8 +222,8 @@
                                 <div class="section-label">공략 덱</div>
                             </div>
                             <div class="header-right">
-                                <div class="pagination-info">${currentDeck.inputMember.name}</div>
                                 <div class="pagination-info">${currentIndex + 1} / ${attackList.length}</div>
+                                <div class="pagination-info">${currentDeck.inputMember.name}</div>
                                 <div class="attack-date">${currentDeck.inputDt ? new Date(currentDeck.inputDt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '-'}</div>
                             </div>
                         </div>
@@ -235,11 +235,11 @@
                             </div>
                             <div class="deck-desc-container">
                                 ${currentDeck.deckDesc1
-                                    ? `<div class="deck-desc-box"><strong>비고1:</strong> ${currentDeck.deckDesc1}</div>`
+                                    ? `<div class="deck-desc-box">${currentDeck.deckDesc1}</div>`
                                     : ''
                                 }
                                 ${currentDeck.deckDesc2
-                                    ? `<div class="deck-desc-box"><strong>비고2:</strong> ${currentDeck.deckDesc2}</div>`
+                                    ? `<div class="deck-desc-box">${currentDeck.deckDesc2}</div>`
                                     : ''
                                 }
                                 ${!currentDeck.deckDesc1 && !currentDeck.deckDesc2
