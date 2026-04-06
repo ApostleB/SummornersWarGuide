@@ -12,6 +12,7 @@ import { DtlCd } from "../code/entities/dtl-cd.entity";
 
 import { Member } from "../auth/entities/member.entity";
 import { MemberLog } from "../auth/entities/member-log.entity";
+import { RolesGuard } from "../auth/guards/roles.guard";
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { MemberLog } from "../auth/entities/member-log.entity";
     TypeOrmModule.forFeature([Defence, Attack, DtlCd, Member, MemberLog]),
   ],
   controllers: [AdminController, AdminViewController],
-  providers: [AdminService, GameService],
+  providers: [AdminService, GameService, RolesGuard],
 })
 export class AdminModule {}

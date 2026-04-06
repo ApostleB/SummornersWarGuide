@@ -10,7 +10,7 @@ import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import * as bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
-import { Member, MemberStatus, SignupMessage } from "./entities/member.entity";
+import { Member, MemberStatus, SignupMessage, MemberWithAuth } from "./entities/member.entity";
 import { MemberLog, LogType } from "./entities/member-log.entity";
 import { DtlCd, YesNo } from "../code/entities/dtl-cd.entity";
 import { SignupDto } from "./dto/signup.dto";
@@ -145,7 +145,6 @@ export class AuthService {
 
     await this.createLog(member.memberId, LogType.LOGIN, "SUCCESS");
 
-    console.log("nickname: ", member.memberNickname);
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -267,15 +266,27 @@ export class AuthService {
     }
   }
 
-  async validateUser(memberId: string): Promise<Member> {
-    const member = await this.memberRepository.findOne({
-      where: { memberId },
-    });
+  async validateUser(memberId: string): Promise<MemberWithAuth> {
+    const result = await this.memberRepository
+      .createQueryBuilder("member")
+      .leftJoin(
+        DtlCd,
+        "levelCode",
+        "levelCode.grpCd = :grpCd AND levelCode.codeValue = CAST(member.memberLevel AS CHAR)",
+        { grpCd: "MEMBER_LEVEL" },
+      )
+      .addSelect("levelCode.codeTitle", "memberAuth")
+      .where("member.memberId = :memberId", { memberId })
+      .getRawAndEntities();
+
+    const member = result.entities[0] as MemberWithAuth;
 
     if (!member) {
       throw new UnauthorizedException("사용자를 찾을 수 없습니다.");
     }
 
+    const raw = result.raw[0];
+    member.memberAuth = raw?.memberAuth || null;
     return member;
   }
 

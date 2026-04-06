@@ -18,6 +18,12 @@
                 <div class="user-info-card">
                     <h2>내 정보</h2>
                     <div class="info-row">
+                        <span class="info-label">권한</span>
+                        <span class="info-value">
+                            <%= user.memberAuth %>
+                        </span>
+                    </div>
+                    <div class="info-row">
                         <span class="info-label">아이디</span>
                         <span class="info-value"><%= user.memberName %></span>
                     </div>

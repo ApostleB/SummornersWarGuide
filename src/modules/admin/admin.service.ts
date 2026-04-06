@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Defence } from "../game/entities/defence.entity";
 import { Repository } from "typeorm";
 import { Attack } from "../game/entities/attack.entity";
-import { DtlCd } from "../code/entities/dtl-cd.entity";
+import { DtlCd, YesNo } from "../code/entities/dtl-cd.entity";
 
 import { Member, MemberStatus } from "../auth/entities/member.entity";
 import { MemberLog } from "../auth/entities/member-log.entity";
@@ -82,6 +82,41 @@ export class AdminService {
     });
   }
 
+  async getMemberLevelCodes(): Promise<
+    { code: string; codeTitle: string; codeValue: string }[]
+  > {
+    const codes = await this.dtlCdRepository.find({
+      where: {
+        grpCd: "MEMBER_LEVEL",
+        delYn: YesNo.N,
+        useYn: YesNo.Y,
+      },
+      order: { codeValue: "ASC" },
+    });
+
+    return codes.map((c) => ({
+      code: c.code,
+      codeTitle: c.codeTitle,
+      codeValue: c.codeValue,
+    }));
+  }
+
+  async updateMemberLevel(memberId: string, code: string): Promise<void> {
+    const levelCode = await this.dtlCdRepository.findOne({
+      where: {
+        grpCd: "MEMBER_LEVEL",
+        code: code,
+      },
+    });
+
+    if (!levelCode) {
+      throw new Error("유효하지 않은 권한 코드입니다.");
+    }
+
+    const memberLevel = parseInt(levelCode.codeValue, 10);
+    await this.memberRepository.update(memberId, { memberLevel });
+  }
+
   async deleteDefence(defenceId: string): Promise<void> {
     await this.attackRepository.delete({ defenceId });
     await this.defenceRepository.delete(defenceId);
@@ -101,7 +136,9 @@ export class AdminService {
 
     const findTypeByTitle = (title: string): DtlCd | null => {
       if (!title) return null;
-      return monsterTypeCodes.find((dtlCd) => dtlCd.codeTitle === title) || null;
+      return (
+        monsterTypeCodes.find((dtlCd) => dtlCd.codeTitle === title) || null
+      );
     };
 
     const getTypeTitle = (name: string) => (name ? name.slice(0, 1) : null);
@@ -137,7 +174,9 @@ export class AdminService {
     // codeTitle로 배열에서 검색
     const findTypeByTitle = (title: string): DtlCd | null => {
       if (!title) return null;
-      return monsterTypeCodes.find((dtlCd) => dtlCd.codeTitle === title) || null;
+      return (
+        monsterTypeCodes.find((dtlCd) => dtlCd.codeTitle === title) || null
+      );
     };
 
     if (xlsxArr.length > 0) {
@@ -153,21 +192,21 @@ export class AdminService {
 
         const defenceData = {
           monsterA: clean(element["방덱리더"]),
-          typeA: findTypeByTitle( getTypeTitle(clean(element["방덱리더"])) ),
+          typeA: findTypeByTitle(getTypeTitle(clean(element["방덱리더"]))),
           monsterB: clean(element["방덱2"]),
-          typeB: findTypeByTitle( getTypeTitle(clean(element["방덱2"])) ),
+          typeB: findTypeByTitle(getTypeTitle(clean(element["방덱2"]))),
           monsterC: clean(element["방덱3"]),
-          typeC: findTypeByTitle( getTypeTitle(clean(element["방덱3"])) ),
+          typeC: findTypeByTitle(getTypeTitle(clean(element["방덱3"]))),
           description: clean(element["비고"]),
         };
 
         const attackData = {
           monsterA: clean(element["공덱리더"]),
-          typeA: findTypeByTitle( getTypeTitle(clean(element["공덱리더"])) ),
+          typeA: findTypeByTitle(getTypeTitle(clean(element["공덱리더"]))),
           monsterB: clean(element["공덱2"]),
-          typeB: findTypeByTitle( getTypeTitle(clean(element["공덱2"])) ),
+          typeB: findTypeByTitle(getTypeTitle(clean(element["공덱2"]))),
           monsterC: clean(element["공덱3"]),
-          typeC: findTypeByTitle( getTypeTitle(clean(element["공덱3"])) ),
+          typeC: findTypeByTitle(getTypeTitle(clean(element["공덱3"]))),
           deckDesc1: clean(element["비고"]),
           deckDesc2: clean(element["비고2"]),
         };

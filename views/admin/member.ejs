@@ -166,10 +166,30 @@
 </main>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    let memberLevelCodes = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await fetchMemberLevelCodes();
         fetchPendingMembers();
         fetchActiveMembers();
     });
+
+    async function fetchMemberLevelCodes() {
+        try {
+            const response = await fetch('/api/admin/codes/member-level', { credentials: 'include' });
+            const data = await response.json();
+            memberLevelCodes = data.codes || [];
+        } catch (error) {
+            console.error('Failed to fetch member level codes:', error);
+        }
+    }
+
+    function renderLevelOptions(currentLevel) {
+        return memberLevelCodes.map(c => {
+            const selected = currentLevel == c.codeValue ? 'selected' : '';
+            return '<option value="' + c.code + '" ' + selected + '>' + c.codeTitle + '</option>';
+        }).join('');
+    }
 
     async function fetchPendingMembers() {
         try {
@@ -244,6 +264,10 @@
                                 <div class="info-item"><label>최근 로그인</label><span>${m.loginDt ? new Date(m.loginDt).toLocaleString() : '기록 없음'}</span></div>
                             </div>
                             <div class="member-actions">
+                                <select class="btn-small" style="background:#f7fafc; color:#2d3748; border:1px solid #e2e8f0; padding: 6px 10px;" onchange="updateMemberLevel('${m.memberId}', this.value, this)">
+                                    <option value="">권한 변경</option>
+                                    ${renderLevelOptions(m.memberLevel)}
+                                </select>
                                 <button class="btn-small btn-reset" onclick="resetPassword('${m.memberId}')">비밀번호 초기화</button>
                                 <button class="btn-small btn-kick" onclick="kickMember('${m.memberId}')">강퇴</button>
                             </div>
@@ -323,6 +347,33 @@
             }
         } catch (error) {
             alert('오류가 발생했습니다.');
+        }
+    }
+
+    async function updateMemberLevel(memberId, code, selectEl) {
+        if (!code) return;
+        const selectedOption = selectEl.options[selectEl.selectedIndex];
+        if (!confirm(`권한을 '${selectedOption.text}'(으)로 변경하시겠습니까?`)) {
+            selectEl.value = '';
+            return;
+        }
+        try {
+            const response = await fetch(`/api/admin/members/${memberId}/level`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
+                credentials: 'include'
+            });
+            if (response.ok) {
+                alert('권한이 변경되었습니다.');
+                fetchActiveMembers();
+            } else {
+                alert('권한 변경에 실패했습니다.');
+                selectEl.value = '';
+            }
+        } catch (error) {
+            alert('오류가 발생했습니다.');
+            selectEl.value = '';
         }
     }
 

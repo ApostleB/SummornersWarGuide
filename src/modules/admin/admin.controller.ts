@@ -13,6 +13,7 @@ import { memoryStorage } from 'multer';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { MinLevel } from '../auth/decorators/min-level.decorator';
 import { GameService } from "../game/game.service";
 import { FileService } from '../../common/file/file.service';
 import {Response} from "express";
@@ -115,5 +116,21 @@ export class AdminController {
   async getMemberLogs(@Param("memberId") memberId: string) {
     const logs = await this.adminService.getMemberLogs(memberId);
     return { success: true, logs };
+  }
+
+  @Get("codes/member-level")
+  async getMemberLevelCodes() {
+    const codes = await this.adminService.getMemberLevelCodes();
+    return { success: true, codes };
+  }
+
+  @MinLevel("LV099")  // 슈퍼관리자(level 99) 이상만 접근 가능 - 실제 코드 값으로 변경 필요
+  @Put("members/:memberId/level")
+  async updateMemberLevel(
+    @Param("memberId") memberId: string,
+    @Body("code") code: string,
+  ) {
+    await this.adminService.updateMemberLevel(memberId, code);
+    return { success: true };
   }
 }

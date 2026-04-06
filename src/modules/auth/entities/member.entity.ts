@@ -6,6 +6,11 @@ import {
   BeforeInsert,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
+
+export interface MemberWithAuth extends Member {
+  memberAuth?: string;
+}
+
 export enum SignupMessage {
   SUCCESS = "가입이 승인되었습니다.",
   REJECT = "인증코드가 일치하지 않습니다..",

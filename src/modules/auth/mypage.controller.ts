@@ -18,6 +18,8 @@ export class MypageController {
       user: {
         memberId: member.memberId,
         memberName: member.memberName,
+        memberAuth: member.memberAuth,
+        level: member.memberLevel,
         memberNickname: member.memberNickname,
         inputDt: member.inputDt,
         loginDt: member.loginDt,
