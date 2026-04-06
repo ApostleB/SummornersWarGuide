@@ -452,19 +452,58 @@
 
 /* Mobile: 몬스터 이름 5글자 제한 */
 @media (max-width: 600px) {
+    .defence-card {
+        padding: 16px;
+    }
+
+    .card-header {
+        gap: 8px;
+    }
+
+    .monster-deck {
+        flex-wrap: nowrap;
+        gap: 4px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .monster-pill {
+        padding: 4px;
+        min-width: 0;
+        flex: 1;
+    }
+
     .monster-name {
-        display: inline-block;
-        max-width: 6em;
+        display: block;
+        max-width: 100%;
         overflow: hidden;
-        text-overflow: fade;
+        text-overflow: ellipsis;
         white-space: nowrap;
-        vertical-align: middle;
+        font-size: 11px;
+        text-align: center;
+    }
+
+    .monster-type-icon {
+        width: 14px;
+        height: 14px;
+        margin-right: 2px;
+    }
+
+    .attack-count {
+        font-size: 11px;
+        padding: 2px 8px;
+    }
+
+    .chevron {
+        font-size: 12px;
     }
 
     .attack-monster-pill {
+        font-size: 11px;
+        padding: 4px 6px;
         max-width: 100%;
         overflow: hidden;
-        text-overflow: fade;
+        text-overflow: ellipsis;
         white-space: nowrap;
     }
 }

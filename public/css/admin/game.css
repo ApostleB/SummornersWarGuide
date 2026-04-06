@@ -28,7 +28,6 @@
     padding: 16px 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 12px;
-    display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
@@ -45,6 +44,7 @@
     gap: 20px;
     flex: 1;
     flex-wrap: wrap;
+    text-align: center;
 }
 
 /* Monster Deck */
@@ -93,6 +93,12 @@
 }
 
 /* Card Actions */
+.card-info-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .card-actions {
     display: flex;
     gap: 8px;
@@ -140,6 +146,7 @@
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
+
 /* Responsive */
 @media (max-width: 600px) {
     .header-actions {
@@ -160,27 +167,74 @@
     }
 
     .defence-card {
-...
         flex-direction: column;
         align-items: stretch;
+        padding: 12px;
+    }
+
+    .card-header-wrapper {
+        align-items: center !important;
     }
 
     .card-content {
-        justify-content: space-between;
+        justify-content: flex-start;
+        gap: 8px;
+        min-width: 0;
+        flex: 1;
     }
 
-    .card-actions {
-        justify-content: flex-end;
-        padding-top: 12px;
-        border-top: 1px solid #f0f0f0;
+    .monster-deck {
+        flex-wrap: nowrap;
+        gap: 4px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .monster-pill {
+        padding: 4px 6px;
+        min-width: 0;
+        flex: 1;
     }
 
     .monster-name {
-        display: inline-block;
-        max-width: 6em;
+        display: block;
+        max-width: 100%;
         overflow: hidden;
-        text-overflow: ellipsis;
+        text-overflow: inherit;
         white-space: nowrap;
-        vertical-align: middle;
+        font-size: 12px;
+    }
+
+    .monster-type-icon {
+        width: 14px;
+        height: 14px;
+        margin-right: 2px;
+    }
+
+    .card-info-actions {
+        flex-direction: column;
+        gap: 6px;
+        flex-shrink: 0;
+        margin-left: 8px;
+        padding: 0 2px;
+    }
+
+    .attack-count {
+        font-size: 12px;
+        padding: 2px 6px;
+    }
+
+    .card-actions {
+        padding-top: 0;
+        border-top: none;
+    }
+
+    .action-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .chevron {
+        font-size: 12px;
     }
 }

@@ -177,9 +177,9 @@
                             ${renderMonster(defence.defenceMonsterB)}
                             ${renderMonster(defence.defenceMonsterC)}
                         </div>
-                        <span class="attack-count">공략 ${defence.attackCount}건</span>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="card-info-actions">
+                        <span class="attack-count">공략 ${defence.attackCount}건</span>
                         <div class="card-actions" onclick="event.stopPropagation()">
                             <button class="action-btn delete-btn" onclick="deleteDefence('${defence.defenceId}')">삭제</button>
                         </div>
