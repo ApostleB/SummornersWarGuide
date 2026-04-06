@@ -233,10 +233,20 @@
                                 ${renderAttackMonsterPill(currentDeck.attackMonsterB)}
                                 ${renderAttackMonsterPill(currentDeck.attackMonsterC)}
                             </div>
-                            ${currentDeck.deckDesc
-                                ? `<div class="deck-desc-box">${currentDeck.deckDesc}</div>`
-                                : '<div class="no-desc">설명이 없습니다.</div>'
-                            }
+                            <div class="deck-desc-container">
+                                ${currentDeck.deckDesc1
+                                    ? `<div class="deck-desc-box"><strong>비고1:</strong> ${currentDeck.deckDesc1}</div>`
+                                    : ''
+                                }
+                                ${currentDeck.deckDesc2
+                                    ? `<div class="deck-desc-box"><strong>비고2:</strong> ${currentDeck.deckDesc2}</div>`
+                                    : ''
+                                }
+                                ${!currentDeck.deckDesc1 && !currentDeck.deckDesc2
+                                    ? '<div class="no-desc">설명이 없습니다.</div>'
+                                    : ''
+                                }
+                            </div>
                         </div>
                         <div class="slider-nav-buttons">
                             <button class="slider-nav-btn" onclick="changeSliderPage('${defenceId}', -1)" ${isFirst ? 'disabled' : ''}>이전</button>

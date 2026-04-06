@@ -106,7 +106,8 @@ export class GameService {
         attackMonsterA: this.mapMonsterInfo(attack.monsterA, attack.monsterAType),
         attackMonsterB: this.mapMonsterInfo(attack.monsterB, attack.monsterBType),
         attackMonsterC: this.mapMonsterInfo(attack.monsterC, attack.monsterCType),
-        deckDesc: attack.deckDesc,
+        deckDesc1: attack.deckDesc1,
+        deckDesc2: attack.deckDesc2,
         inputDt: attack.inputDt,
         inputMember: attack.inputMember
           ? {

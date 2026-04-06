@@ -118,8 +118,11 @@ export class AdminService {
       attack.monsterC = updateData.monsterC;
       attack.monsterCType = findTypeByTitle(getTypeTitle(updateData.monsterC));
     }
-    if (updateData.deckDesc !== undefined) {
-      attack.deckDesc = updateData.deckDesc;
+    if (updateData.deckDesc1 !== undefined) {
+      attack.deckDesc1 = updateData.deckDesc1;
+    }
+    if (updateData.deckDesc2 !== undefined) {
+      attack.deckDesc2 = updateData.deckDesc2;
     }
 
     await this.attackRepository.save(attack);
@@ -165,7 +168,8 @@ export class AdminService {
           typeB: findTypeByTitle( getTypeTitle(clean(element["공덱2"])) ),
           monsterC: clean(element["공덱3"]),
           typeC: findTypeByTitle( getTypeTitle(clean(element["공덱3"])) ),
-          deckDesc: clean(element["비고"]),
+          deckDesc1: clean(element["비고"]),
+          deckDesc2: clean(element["비고2"]),
         };
 
         // 1. 방덱 중복 체크 및 저장
@@ -199,7 +203,8 @@ export class AdminService {
             monsterA: attackData.monsterA,
             monsterB: attackData.monsterB,
             monsterC: attackData.monsterC,
-            deckDesc: attackData.deckDesc,
+            deckDesc1: attackData.deckDesc1,
+            deckDesc2: attackData.deckDesc2,
           },
         });
 
@@ -212,7 +217,8 @@ export class AdminService {
             monsterBType: attackData.typeB,
             monsterC: attackData.monsterC,
             monsterCType: attackData.typeC,
-            deckDesc: attackData.deckDesc,
+            deckDesc1: attackData.deckDesc1,
+            deckDesc2: attackData.deckDesc2,
             defence: defence,
           });
           await this.attackRepository.save(newAttack);

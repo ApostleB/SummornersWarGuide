@@ -41,8 +41,11 @@ export class Attack {
   @JoinColumn({ name: "MONSTER_C_TYPE", referencedColumnName: "code" })
   monsterCType: DtlCd;
 
-  @Column({ name: "DECK_DESC", type: "varchar", length: 1000, nullable: true })
-  deckDesc: string;
+  @Column({ name: "DECK_DESC1", type: "varchar", length: 1000, nullable: true })
+  deckDesc1: string;
+
+  @Column({ name: "DECK_DESC2", type: "varchar", length: 1000, nullable: true })
+  deckDesc2: string;
 
   @Column({ name: "INPUT_ID", type: "uuid", nullable: true })
   inputId: string;

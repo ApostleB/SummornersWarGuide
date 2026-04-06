@@ -253,8 +253,19 @@
                                 ${renderMonster(attack.attackMonsterB)}
                                 ${renderMonster(attack.attackMonsterC)}
                             </div>
-                            <div style="font-size: 13px; color: #666; background: white; padding: 8px; border-radius: 4px; border: 1px solid #eee;">
-                                ${attack.deckDesc || '설명 없음'}
+                            <div style="display: flex; flex-direction: column; gap: 6px;">
+                                ${attack.deckDesc1
+                                    ? `<div style="font-size: 13px; color: #666; background: white; padding: 8px; border-radius: 4px; border: 1px solid #eee;"><strong>비고1:</strong> ${attack.deckDesc1}</div>`
+                                    : ''
+                                }
+                                ${attack.deckDesc2
+                                    ? `<div style="font-size: 13px; color: #666; background: white; padding: 8px; border-radius: 4px; border: 1px solid #eee;"><strong>비고2:</strong> ${attack.deckDesc2}</div>`
+                                    : ''
+                                }
+                                ${!attack.deckDesc1 && !attack.deckDesc2
+                                    ? '<div style="font-size: 13px; color: #999; background: white; padding: 8px; border-radius: 4px; border: 1px solid #eee;">설명 없음</div>'
+                                    : ''
+                                }
                             </div>
                         </div>
                         <div class="card-actions" style="margin-left: 15px;">
@@ -276,7 +287,16 @@
                                 <input type="text" id="edit-monC-${attack.attackId}" value="${attack.attackMonsterC?.monsterName || ''}" placeholder="몬스터C">
                             </div>
                         </div>
-                        <textarea id="edit-desc-${attack.attackId}" style="width: 100%; height: 60px; padding: 8px; border: 1px solid #e8eeff; border-radius: 8px; resize: none; font-size: 13px; background: #fff;">${attack.deckDesc || ''}</textarea>
+                        <div style="display: flex; gap: 8px;">
+                            <div style="flex: 1;">
+                                <label style="font-size: 12px; color: #666;">설명1</label>
+                                <textarea id="edit-desc1-${attack.attackId}" style="width: 100%; height: 50px; padding: 8px; border: 1px solid #e8eeff; border-radius: 8px; resize: none; font-size: 13px; background: #fff;">${attack.deckDesc1 || ''}</textarea>
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="font-size: 12px; color: #666;">설명2</label>
+                                <textarea id="edit-desc2-${attack.attackId}" style="width: 100%; height: 50px; padding: 8px; border: 1px solid #e8eeff; border-radius: 8px; resize: none; font-size: 13px; background: #fff;">${attack.deckDesc2 || ''}</textarea>
+                            </div>
+                        </div>
                         <div style="display: flex; justify-content: flex-end; gap: 8px;">
                             <button class="action-btn" style="background: #eee; color: #333; border: 1px solid #ddd;" onclick="disableAttackEdit('${attack.attackId}')">취소</button>
                             <button class="action-btn" style="background: #667eea; color: white;" onclick="saveAttackEdit('${attack.attackId}', '${defenceId}')">저장</button>
@@ -301,13 +321,14 @@
         const monsterA = document.getElementById(`edit-monA-${attackId}`).value.trim();
         const monsterB = document.getElementById(`edit-monB-${attackId}`).value.trim();
         const monsterC = document.getElementById(`edit-monC-${attackId}`).value.trim();
-        const deckDesc = document.getElementById(`edit-desc-${attackId}`).value.trim();
+        const deckDesc1 = document.getElementById(`edit-desc1-${attackId}`).value.trim();
+        const deckDesc2 = document.getElementById(`edit-desc2-${attackId}`).value.trim();
 
         try {
             const response = await fetch(`/api/admin/attack/${attackId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ monsterA, monsterB, monsterC, deckDesc }),
+                body: JSON.stringify({ monsterA, monsterB, monsterC, deckDesc1, deckDesc2 }),
                 credentials: 'include'
             });
 
