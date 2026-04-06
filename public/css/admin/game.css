@@ -147,6 +147,252 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
+/* Chevron */
+.chevron {
+    font-size: 14px;
+    color: #aaa;
+    transition: transform 0.3s ease;
+}
+
+/* 공략 아이템 */
+.attack-item-admin {
+    background: #f9f9f9;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+/* 공략 뷰 모드 */
+.attack-view-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.attack-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.attack-index {
+    font-weight: bold;
+    color: #667eea;
+    font-size: 14px;
+}
+
+.attack-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: #888;
+}
+
+.attack-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.meta-label {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.meta-label.created {
+    background: #e8f0fe;
+    color: #667eea;
+}
+
+.meta-label.updated {
+    background: #fef3e8;
+    color: #e6a23c;
+}
+
+.meta-name {
+    color: #555;
+}
+
+.meta-date {
+    color: #aaa;
+}
+
+.attack-body-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.attack-monsters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.attack-desc-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.attack-desc-item {
+    font-size: 13px;
+    color: #666;
+    background: white;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+.attack-desc-item strong {
+    color: #555;
+}
+
+.attack-desc-empty {
+    font-size: 13px;
+    color: #999;
+    background: white;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+.attack-view-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+}
+
+.attack-view-actions .action-btn {
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+/* 공략 수정 모드 */
+.attack-edit-mode {
+    display: none;
+}
+
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.edit-monsters-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.edit-pill-input {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 2px solid #e8eeff;
+    border-radius: 8px;
+    padding: 4px 10px;
+    flex: 1;
+    min-width: 100px;
+    transition: border-color 0.2s;
+}
+
+.edit-pill-input:focus-within {
+    border-color: #667eea;
+}
+
+.edit-pill-input input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    background: transparent;
+}
+
+.edit-desc-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.edit-desc-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.edit-desc-label {
+    font-size: 12px;
+    color: #666;
+    min-width: 40px;
+    padding-top: 8px;
+}
+
+.edit-desc-textarea {
+    flex: 1;
+    height: 72px;
+    padding: 8px;
+    border: 1px solid #e8eeff;
+    border-radius: 8px;
+    resize: none;
+    font-size: 13px;
+    background: #fff;
+    line-height: 1.5;
+}
+
+.edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.btn-cancel {
+    background: #eee;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.btn-save {
+    background: #667eea;
+    color: white;
+}
+
+/* 방어덱 카드 */
+.defence-card-admin {
+    flex-direction: column;
+    align-items: stretch;
+    cursor: default;
+}
+
+.card-header-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    cursor: pointer;
+    user-select: none;
+}
+
+.accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.admin-attack-list {
+    margin-top: 15px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
     .header-actions {
@@ -191,7 +437,7 @@
     }
 
     .monster-pill {
-        padding: 4px 6px;
+        padding: 4px 4px;
         min-width: 0;
         flex: 1;
     }
@@ -236,5 +482,65 @@
 
     .chevron {
         font-size: 12px;
+    }
+}
+
+/* 롱프레스 팝업 */
+.monster-popup {
+    position: fixed;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 12px 16px;
+    z-index: 1000;
+    display: none;
+    min-width: 150px;
+    max-width: 250px;
+}
+
+.monster-popup.show {
+    display: block;
+}
+
+.monster-popup-title {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #eee;
+}
+
+.monster-popup-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.monster-popup-item {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.monster-popup-item img {
+    width: 16px;
+    height: 16px;
+}
+
+/* 공략 아이템 모바일 대응 */
+@media screen and (max-width: 768px) {
+    .attack-header-row {
+        display: none;
+    }
+    .attack-view-actions {
+        flex-direction: column;
+    }
+    .attack-desc-item {
+        max-height: calc(1.5em * 4 + 16px); /* 4줄 + padding */
+        overflow-y: auto;
+        line-height: 1.5;
     }
 }

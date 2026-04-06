@@ -45,7 +45,7 @@ export class RolesGuard implements CanActivate {
     const levelCode = await this.dtlCdRepository.findOne({
       where: {
         grpCd: "MEMBER_LEVEL",
-        code: requiredLevelCode,
+        codeValue: user.level.toString(),
         delYn: YesNo.N,
         useYn: YesNo.Y,
       },

@@ -92,6 +92,7 @@ export class GameService {
       .leftJoinAndSelect("attackList.monsterBType", "amBType")
       .leftJoinAndSelect("attackList.monsterCType", "amCType")
       .leftJoinAndSelect("attackList.inputMember", "inputMember")
+      .leftJoinAndSelect("attackList.updateMember", "updateMember")
       .where("defence.defenceId = :defenceId", { defenceId })
       .addOrderBy("attackList.inputDt", "DESC")
       .getOne();
@@ -113,6 +114,13 @@ export class GameService {
           ? {
               name: attack.inputMember.memberName,
               nickname: attack.inputMember.memberNickname,
+            }
+          : null,
+        updateDt: attack.updateDt,
+        updateMember: attack.updateMember
+          ? {
+              name: attack.updateMember.memberName,
+              nickname: attack.updateMember.memberNickname,
             }
           : null,
       })),

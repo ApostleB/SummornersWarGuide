@@ -4,6 +4,7 @@ import { Defence } from "../game/entities/defence.entity";
 import { Repository } from "typeorm";
 import { Attack } from "../game/entities/attack.entity";
 import { DtlCd, YesNo } from "../code/entities/dtl-cd.entity";
+import { GrpCd } from "../code/entities/grp-cd.entity";
 
 import { Member, MemberStatus } from "../auth/entities/member.entity";
 import { MemberLog } from "../auth/entities/member-log.entity";
@@ -19,6 +20,8 @@ export class AdminService {
     private attackRepository: Repository<Attack>,
     @InjectRepository(DtlCd)
     private dtlCdRepository: Repository<DtlCd>,
+    @InjectRepository(GrpCd)
+    private grpCdRepository: Repository<GrpCd>,
     @InjectRepository(Member)
     private memberRepository: Repository<Member>,
     @InjectRepository(MemberLog)
@@ -126,7 +129,7 @@ export class AdminService {
     await this.attackRepository.delete(attackId);
   }
 
-  async updateAttack(attackId: string, updateData: any): Promise<void> {
+  async updateAttack(attackId: string, updateData: any, memberId: string): Promise<void> {
     const attack = await this.attackRepository.findOne({ where: { attackId } });
     if (!attack) return;
 
@@ -162,10 +165,16 @@ export class AdminService {
       attack.deckDesc2 = updateData.deckDesc2;
     }
 
+    attack.updateId = memberId;
+    attack.updateDt = new Date();
+
     await this.attackRepository.save(attack);
   }
 
-  async defenceArraySave(xlsxArr: Array<any>): Promise<string> {
+  async defenceArraySave(
+    xlsxArr: Array<any>,
+    memberId: string,
+  ): Promise<string> {
     // MONSTER_TYPE_CODE 그룹의 DTL_CD를 한 번에 조회하여 캐싱
     const monsterTypeCodes = await this.dtlCdRepository.find({
       where: { grpCd: "MONSTER_TYPE_CODE" },
@@ -207,7 +216,7 @@ export class AdminService {
           typeB: findTypeByTitle(getTypeTitle(clean(element["공덱2"]))),
           monsterC: clean(element["공덱3"]),
           typeC: findTypeByTitle(getTypeTitle(clean(element["공덱3"]))),
-          deckDesc1: clean(element["비고"]),
+          deckDesc1: clean(element["비고1"]),
           deckDesc2: clean(element["비고2"]),
         };
 
@@ -259,6 +268,7 @@ export class AdminService {
             deckDesc1: attackData.deckDesc1,
             deckDesc2: attackData.deckDesc2,
             defence: defence,
+            inputId: memberId,
           });
           await this.attackRepository.save(newAttack);
           console.log(
@@ -273,5 +283,38 @@ export class AdminService {
     }
 
     return "Processing completed";
+  }
+
+  // ========== 코드 관리 ==========
+
+  async getGrpCdList(): Promise<GrpCd[]> {
+    return this.grpCdRepository.find({
+      where: { delYn: YesNo.N },
+      order: { groupCodeId: "ASC" },
+    });
+  }
+
+  async getDtlCdList(grpCd: string): Promise<DtlCd[]> {
+    return this.dtlCdRepository.find({
+      where: { grpCd, delYn: YesNo.N },
+      order: { code: "ASC" },
+    });
+  }
+
+  async createDtlCd(data: Partial<DtlCd>): Promise<DtlCd> {
+    const dtlCd = this.dtlCdRepository.create({
+      ...data,
+      delYn: YesNo.N,
+      useYn: data.useYn || YesNo.Y,
+    });
+    return this.dtlCdRepository.save(dtlCd);
+  }
+
+  async updateDtlCd(idx: number, data: Partial<DtlCd>): Promise<void> {
+    await this.dtlCdRepository.update(idx, data);
+  }
+
+  async deleteDtlCd(idx: number): Promise<void> {
+    await this.dtlCdRepository.update(idx, { delYn: YesNo.Y });
   }
 }

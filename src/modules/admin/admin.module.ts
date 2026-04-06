@@ -9,6 +9,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { Defence } from "../game/entities/defence.entity";
 import { Attack } from "../game/entities/attack.entity";
 import { DtlCd } from "../code/entities/dtl-cd.entity";
+import { GrpCd } from "../code/entities/grp-cd.entity";
 
 import { Member } from "../auth/entities/member.entity";
 import { MemberLog } from "../auth/entities/member-log.entity";
@@ -18,7 +19,7 @@ import { RolesGuard } from "../auth/guards/roles.guard";
   imports: [
     AuthModule,
     FileModule,
-    TypeOrmModule.forFeature([Defence, Attack, DtlCd, Member, MemberLog]),
+    TypeOrmModule.forFeature([Defence, Attack, DtlCd, GrpCd, Member, MemberLog]),
   ],
   controllers: [AdminController, AdminViewController],
   providers: [AdminService, GameService, RolesGuard],

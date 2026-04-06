@@ -6,7 +6,7 @@ import {
   UploadedFile,
   BadRequestException,
   Get,
-  Query, Res, HttpStatus, Delete, Param, Put, Body
+  Query, Res, HttpStatus, Delete, Param, Put, Body, Req
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -16,7 +16,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { MinLevel } from '../auth/decorators/min-level.decorator';
 import { GameService } from "../game/game.service";
 import { FileService } from '../../common/file/file.service';
-import {Response} from "express";
+import { Request, Response } from "express";
+import { AuthUser } from "../../common/middlewares/auth.middleware";
 
 const multerOptions = {
   storage: memoryStorage(),
@@ -43,12 +44,16 @@ export class AdminController {
 
   @Post("file/defence")
   @UseInterceptors(FileInterceptor("file", multerOptions))
-  async uploadDefenceFile(@UploadedFile() file: Express.Multer.File) {
+  async uploadDefenceFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: Request,
+  ) {
     if (!file) {
       throw new BadRequestException("File is required");
     }
+    const user = req.user as AuthUser;
     const data = await this.fileService.readExcel(file);
-    await this.adminService.defenceArraySave(data);
+    await this.adminService.defenceArraySave(data, user.memberId);
     return { success: true, data };
   }
 
@@ -68,8 +73,10 @@ export class AdminController {
   async updateAttack(
     @Param("attackId") attackId: string,
     @Body() updateData: any,
+    @Req() req: Request,
   ) {
-    await this.adminService.updateAttack(attackId, updateData);
+    const user = req.user as AuthUser;
+    await this.adminService.updateAttack(attackId, updateData, user.memberId);
     return { success: true };
   }
 
@@ -124,13 +131,50 @@ export class AdminController {
     return { success: true, codes };
   }
 
-  @MinLevel("LV099")  // 슈퍼관리자(level 99) 이상만 접근 가능 - 실제 코드 값으로 변경 필요
+  @MinLevel("LV099")
   @Put("members/:memberId/level")
   async updateMemberLevel(
     @Param("memberId") memberId: string,
     @Body("code") code: string,
   ) {
     await this.adminService.updateMemberLevel(memberId, code);
+    return { success: true };
+  }
+
+  // ========== 코드 관리 (level 99만 접근 가능) ==========
+
+  @MinLevel("LV099")
+  @Get("codes/grp")
+  async getGrpCdList() {
+    const grpCdList = await this.adminService.getGrpCdList();
+    return { success: true, grpCdList };
+  }
+
+  @MinLevel("LV099")
+  @Get("codes/dtl/:grpCd")
+  async getDtlCdList(@Param("grpCd") grpCd: string) {
+    const dtlCdList = await this.adminService.getDtlCdList(grpCd);
+    return { success: true, dtlCdList };
+  }
+
+  @MinLevel("LV099")
+  @Post("codes/dtl")
+  async createDtlCd(@Body() data: any) {
+    const dtlCd = await this.adminService.createDtlCd(data);
+    return { success: true, dtlCd };
+  }
+
+  @MinLevel("LV099")
+  @Put("codes/dtl/:idx")
+  async updateDtlCd(@Param("idx") idx: number, @Body() data: any) {
+    await this.adminService.updateDtlCd(idx, data);
+    return { success: true };
+  }
+
+  @MinLevel("LV099")
+  @Delete("codes/dtl/:idx")
+  async deleteDtlCd(@Param("idx") idx: number) {
+    await this.adminService.deleteDtlCd(idx);
     return { success: true };
   }
 }

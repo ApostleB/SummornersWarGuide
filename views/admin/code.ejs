@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
+    <title>관리자 - 코드 관리</title>
+    <link rel="stylesheet" href="/public/css/common/layout.css">
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/admin.css">
+    <style>
+        .code-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-height: 600px;
+        }
+        .grp-list-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #edf2f7;
+            padding: 20px;
+            min-height: 200px;
+        }
+        .grp-list-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        #grpList {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .grp-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #edf2f7;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .grp-item:hover {
+            background: #f7fafc;
+            border-color: #667eea;
+        }
+        .grp-item.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .grp-item .grp-code {
+            font-weight: 600;
+            font-size: 14px;
+            min-width: 180px;
+        }
+        .grp-item .grp-title {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .dtl-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #edf2f7;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .dtl-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        .dtl-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        .dtl-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .dtl-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .dtl-table th {
+            background: #f7fafc;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #edf2f7;
+            position: sticky;
+            top: 0;
+        }
+        .dtl-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #edf2f7;
+            vertical-align: middle;
+        }
+        .dtl-table tr:hover {
+            background: #f7fafc;
+        }
+        .dtl-table tr.selected {
+            background: #ebf4ff;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-y { background: #c6f6d5; color: #22543d; }
+        .badge-n { background: #fed7d7; color: #c53030; }
+
+        .btn-icon {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .btn-edit { background: #ebf4ff; color: #3182ce; }
+        .btn-edit:hover { background: #bee3f8; }
+        .btn-delete { background: #fed7d7; color: #c53030; }
+        .btn-delete:hover { background: #feb2b2; }
+
+        .edit-panel {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .edit-panel-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        .form-group input, .form-group select {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-secondary {
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover { background: #e2e8f0; }
+
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: #a0aec0;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            #grpList {
+                max-height: 200px;
+            }
+            .grp-item .grp-code {
+                min-width: 120px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<%- include('../partials/header') %>
+
+<main class="main-content">
+    <div class="admin-container">
+        <div class="page-header">
+            <h1 class="page-title">코드 관리</h1>
+            <p class="page-desc">시스템 코드를 관리합니다 (슈퍼관리자 전용)</p>
+        </div>
+
+        <div class="code-container">
+            <!-- 그룹 코드 목록 -->
+            <div class="grp-list-panel">
+                <div class="grp-list-title">그룹 코드</div>
+                <div id="grpList">
+                    <div class="empty-state" style="height: 100px;">불러오는 중...</div>
+                </div>
+            </div>
+
+            <!-- 상세 코드 관리 -->
+            <div class="dtl-panel">
+                <div class="dtl-header">
+                    <div class="dtl-title">상세 코드 <span id="selectedGrpCd" style="color: #667eea;"></span></div>
+                    <button class="btn-primary" onclick="openAddForm()" id="addBtn" style="display:none;">+ 코드 추가</button>
+                </div>
+
+                <div class="dtl-list" id="dtlListContainer">
+                    <div class="empty-state">그룹 코드를 선택해주세요</div>
+                </div>
+
+                <!-- 코드 추가/수정 폼 -->
+                <div class="edit-panel" id="editPanel" style="display:none;">
+                    <div class="edit-panel-title" id="editPanelTitle">코드 추가</div>
+                    <input type="hidden" id="editIdx">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>코드 *</label>
+                            <input type="text" id="editCode" placeholder="CODE001">
+                        </div>
+                        <div class="form-group">
+                            <label>코드명 *</label>
+                            <input type="text" id="editCodeTitle" placeholder="코드 이름">
+                        </div>
+                        <div class="form-group">
+                            <label>코드값</label>
+                            <input type="text" id="editCodeValue" placeholder="값">
+                        </div>
+                        <div class="form-group">
+                            <label>속성1</label>
+                            <input type="text" id="editCodeAttr1" placeholder="추가 속성">
+                        </div>
+                        <div class="form-group">
+                            <label>속성2</label>
+                            <input type="text" id="editCodeAttr2" placeholder="추가 속성">
+                        </div>
+                        <div class="form-group">
+                            <label>속성3</label>
+                            <input type="text" id="editCodeAttr3" placeholder="추가 속성">
+                        </div>
+                        <div class="form-group">
+                            <label>사용여부</label>
+                            <select id="editUseYn">
+                                <option value="Y">사용</option>
+                                <option value="N">미사용</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-secondary" onclick="closeEditPanel()">취소</button>
+                        <button class="btn-primary" onclick="saveCode()">저장</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    let currentGrpCd = null;
+    let editMode = 'add'; // 'add' or 'edit'
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchGrpList();
+    });
+
+    async function fetchGrpList() {
+        try {
+            const response = await fetch('/api/admin/codes/grp', { credentials: 'include' });
+            const data = await response.json();
+            renderGrpList(data.grpCdList);
+        } catch (error) {
+            console.error('Failed to fetch group codes:', error);
+        }
+    }
+
+    function renderGrpList(grpList) {
+        const container = document.getElementById('grpList');
+        if (!grpList || grpList.length === 0) {
+            container.innerHTML = '<div class="empty-state">등록된 그룹 코드가 없습니다</div>';
+            return;
+        }
+
+        container.innerHTML = grpList.map(grp => `
+            <div class="grp-item" onclick="selectGrp('${grp.groupCodeId}', this)">
+                <div class="grp-code">${grp.groupCodeId}</div>
+                <div class="grp-title">${grp.groupTitle || '-'}</div>
+            </div>
+        `).join('');
+    }
+
+    function selectGrp(grpCd, element) {
+        currentGrpCd = grpCd;
+
+        document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+
+        document.getElementById('selectedGrpCd').textContent = `(${grpCd})`;
+        document.getElementById('addBtn').style.display = 'block';
+
+        fetchDtlList(grpCd);
+        closeEditPanel();
+    }
+
+    async function fetchDtlList(grpCd) {
+        try {
+            const response = await fetch(`/api/admin/codes/dtl/${grpCd}`, { credentials: 'include' });
+            const data = await response.json();
+            renderDtlList(data.dtlCdList);
+        } catch (error) {
+            console.error('Failed to fetch detail codes:', error);
+        }
+    }
+
+    function renderDtlList(dtlList) {
+        const container = document.getElementById('dtlListContainer');
+        if (!dtlList || dtlList.length === 0) {
+            container.innerHTML = '<div class="empty-state">등록된 상세 코드가 없습니다</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <table class="dtl-table">
+                <thead>
+                    <tr>
+                        <th>코드</th>
+                        <th>코드명</th>
+                        <th>코드값</th>
+                        <th>속성1</th>
+                        <th>사용</th>
+                        <th style="width:80px;">관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${dtlList.map(dtl => `
+                        <tr id="row-${dtl.idx}">
+                            <td><strong>${dtl.code}</strong></td>
+                            <td>${dtl.codeTitle || '-'}</td>
+                            <td>${dtl.codeValue || '-'}</td>
+                            <td>${dtl.codeAttr1 || '-'}</td>
+                            <td><span class="badge badge-${dtl.useYn.toLowerCase()}">${dtl.useYn === 'Y' ? '사용' : '미사용'}</span></td>
+                            <td>
+                                <button class="btn-icon btn-edit" onclick="editCode(${dtl.idx}, '${dtl.code}', '${dtl.codeTitle || ''}', '${dtl.codeValue || ''}', '${dtl.codeAttr1 || ''}', '${dtl.codeAttr2 || ''}', '${dtl.codeAttr3 || ''}', '${dtl.useYn}')">수정</button>
+                                <button class="btn-icon btn-delete" onclick="deleteCode(${dtl.idx})">삭제</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    function openAddForm() {
+        editMode = 'add';
+        document.getElementById('editPanelTitle').textContent = '코드 추가';
+        document.getElementById('editIdx').value = '';
+        document.getElementById('editCode').value = '';
+        document.getElementById('editCode').disabled = false;
+        document.getElementById('editCodeTitle').value = '';
+        document.getElementById('editCodeValue').value = '';
+        document.getElementById('editCodeAttr1').value = '';
+        document.getElementById('editCodeAttr2').value = '';
+        document.getElementById('editCodeAttr3').value = '';
+        document.getElementById('editUseYn').value = 'Y';
+        document.getElementById('editPanel').style.display = 'block';
+    }
+
+    function editCode(idx, code, codeTitle, codeValue, codeAttr1, codeAttr2, codeAttr3, useYn) {
+        editMode = 'edit';
+        document.getElementById('editPanelTitle').textContent = '코드 수정';
+        document.getElementById('editIdx').value = idx;
+        document.getElementById('editCode').value = code;
+        document.getElementById('editCode').disabled = true;
+        document.getElementById('editCodeTitle').value = codeTitle;
+        document.getElementById('editCodeValue').value = codeValue;
+        document.getElementById('editCodeAttr1').value = codeAttr1;
+        document.getElementById('editCodeAttr2').value = codeAttr2;
+        document.getElementById('editCodeAttr3').value = codeAttr3;
+        document.getElementById('editUseYn').value = useYn;
+        document.getElementById('editPanel').style.display = 'block';
+
+        document.querySelectorAll('.dtl-table tr').forEach(tr => tr.classList.remove('selected'));
+        document.getElementById(`row-${idx}`)?.classList.add('selected');
+    }
+
+    function closeEditPanel() {
+        document.getElementById('editPanel').style.display = 'none';
+        document.querySelectorAll('.dtl-table tr').forEach(tr => tr.classList.remove('selected'));
+    }
+
+    async function saveCode() {
+        const code = document.getElementById('editCode').value.trim();
+        const codeTitle = document.getElementById('editCodeTitle').value.trim();
+        const codeValue = document.getElementById('editCodeValue').value.trim();
+        const codeAttr1 = document.getElementById('editCodeAttr1').value.trim();
+        const codeAttr2 = document.getElementById('editCodeAttr2').value.trim();
+        const codeAttr3 = document.getElementById('editCodeAttr3').value.trim();
+        const useYn = document.getElementById('editUseYn').value;
+
+        if (!code || !codeTitle) {
+            alert('코드와 코드명은 필수입니다.');
+            return;
+        }
+
+        const data = {
+            grpCd: currentGrpCd,
+            code,
+            codeTitle,
+            codeValue,
+            codeAttr1,
+            codeAttr2,
+            codeAttr3,
+            useYn
+        };
+
+        try {
+            let response;
+            if (editMode === 'add') {
+                response = await fetch('/api/admin/codes/dtl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                    credentials: 'include'
+                });
+            } else {
+                const idx = document.getElementById('editIdx').value;
+                response = await fetch(`/api/admin/codes/dtl/${idx}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                    credentials: 'include'
+                });
+            }
+
+            if (response.ok) {
+                alert(editMode === 'add' ? '코드가 추가되었습니다.' : '코드가 수정되었습니다.');
+                closeEditPanel();
+                fetchDtlList(currentGrpCd);
+            } else {
+                alert('저장에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Failed to save code:', error);
+            alert('오류가 발생했습니다.');
+        }
+    }
+
+    async function deleteCode(idx) {
+        if (!confirm('이 코드를 삭제하시겠습니까?')) return;
+
+        try {
+            const response = await fetch(`/api/admin/codes/dtl/${idx}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                alert('코드가 삭제되었습니다.');
+                fetchDtlList(currentGrpCd);
+                closeEditPanel();
+            } else {
+                alert('삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Failed to delete code:', error);
+            alert('오류가 발생했습니다.');
+        }
+    }
+</script>
+</body>
+</html>

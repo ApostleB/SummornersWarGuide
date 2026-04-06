@@ -60,6 +60,10 @@ export class Attack {
   @Column({ name: "UPDATE_ID", type: "uuid", nullable: true })
   updateId: string;
 
+  @ManyToOne(() => Member)
+  @JoinColumn({ name: "UPDATE_ID", referencedColumnName: "memberId" })
+  updateMember: Member;
+
   @Column({ name: "UPDATE_DT", type: "datetime", nullable: true })
   updateDt: Date;
 
