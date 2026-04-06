@@ -91,6 +91,7 @@ export class GameService {
       .leftJoinAndSelect("attackList.monsterAType", "amAType")
       .leftJoinAndSelect("attackList.monsterBType", "amBType")
       .leftJoinAndSelect("attackList.monsterCType", "amCType")
+      .leftJoinAndSelect("attackList.inputMember", "inputMember")
       .where("defence.defenceId = :defenceId", { defenceId })
       .addOrderBy("attackList.inputDt", "DESC")
       .getOne();
@@ -107,6 +108,12 @@ export class GameService {
         attackMonsterC: this.mapMonsterInfo(attack.monsterC, attack.monsterCType),
         deckDesc: attack.deckDesc,
         inputDt: attack.inputDt,
+        inputMember: attack.inputMember
+          ? {
+              name: attack.inputMember.memberName,
+              nickname: attack.inputMember.memberNickname,
+            }
+          : null,
       })),
     };
   }

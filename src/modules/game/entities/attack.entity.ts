@@ -10,6 +10,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { Defence } from "./defence.entity";
 import { DtlCd } from "../../code/entities/dtl-cd.entity";
+import { Member } from "../../auth/entities/member.entity";
 
 @Entity("ATTACK_DECK")
 export class Attack {
@@ -45,6 +46,10 @@ export class Attack {
 
   @Column({ name: "INPUT_ID", type: "uuid", nullable: true })
   inputId: string;
+
+  @ManyToOne(() => Member)
+  @JoinColumn({ name: "INPUT_ID", referencedColumnName: "memberId" })
+  inputMember: Member;
 
   @CreateDateColumn({ name: "INPUT_DT" })
   inputDt: Date;

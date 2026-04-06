@@ -88,7 +88,7 @@
                     headerSearchInput.addEventListener('input', (e) => {
                         pageSearchInput.value = e.target.value;
                     });
-                    
+
                     headerSearchBtn.onclick = (e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -222,6 +222,7 @@
                                 <div class="section-label">공략 덱</div>
                             </div>
                             <div class="header-right">
+                                <div class="pagination-info">${currentDeck.inputMember.name}</div>
                                 <div class="pagination-info">${currentIndex + 1} / ${attackList.length}</div>
                                 <div class="attack-date">${currentDeck.inputDt ? new Date(currentDeck.inputDt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '-'}</div>
                             </div>
