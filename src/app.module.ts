@@ -2,6 +2,7 @@ import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
 import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
 import { AuthModule } from "./modules/auth/auth.module";
 import { CodeModule } from "./modules/code/code.module";
 import { GameModule } from "./modules/game/game.module";
@@ -23,7 +24,7 @@ import { AuthMiddleware } from "./common/middlewares/auth.middleware";
     AdminModule,
   ],
   controllers: [AppController],
-  providers: [],
+  providers: [AppService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

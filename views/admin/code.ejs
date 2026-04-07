@@ -173,16 +173,24 @@
             margin-bottom: 4px;
             font-weight: 600;
         }
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             padding: 8px 12px;
             border: 1px solid #e2e8f0;
             border-radius: 6px;
             font-size: 13px;
         }
-        .form-group input:focus, .form-group select:focus {
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+        .form-group.full-width {
+            grid-column: 1 / -1;
         }
         .form-actions {
             display: flex;
@@ -277,9 +285,9 @@
                             <label>코드명 *</label>
                             <input type="text" id="editCodeTitle" placeholder="코드 이름">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group full-width">
                             <label>코드값</label>
-                            <input type="text" id="editCodeValue" placeholder="값">
+                            <textarea id="editCodeValue" placeholder="값 (최대 1000자)"></textarea>
                         </div>
                         <div class="form-group">
                             <label>속성1</label>
@@ -388,14 +396,14 @@
                 </thead>
                 <tbody>
                     ${dtlList.map(dtl => `
-                        <tr id="row-${dtl.idx}">
+                        <tr id="row-${dtl.idx}" data-dtl='${JSON.stringify(dtl).replace(/'/g, "&#39;")}'>
                             <td><strong>${dtl.code}</strong></td>
                             <td>${dtl.codeTitle || '-'}</td>
-                            <td>${dtl.codeValue || '-'}</td>
+                            <td class="code-value-cell">${(dtl.codeValue || '-').replace(/\n/g, '<br>')}</td>
                             <td>${dtl.codeAttr1 || '-'}</td>
                             <td><span class="badge badge-${dtl.useYn.toLowerCase()}">${dtl.useYn === 'Y' ? '사용' : '미사용'}</span></td>
                             <td>
-                                <button class="btn-icon btn-edit" onclick="editCode(${dtl.idx}, '${dtl.code}', '${dtl.codeTitle || ''}', '${dtl.codeValue || ''}', '${dtl.codeAttr1 || ''}', '${dtl.codeAttr2 || ''}', '${dtl.codeAttr3 || ''}', '${dtl.useYn}')">수정</button>
+                                <button class="btn-icon btn-edit" onclick="editCode(${dtl.idx})">수정</button>
                                 <button class="btn-icon btn-delete" onclick="deleteCode(${dtl.idx})">삭제</button>
                             </td>
                         </tr>
@@ -420,22 +428,25 @@
         document.getElementById('editPanel').style.display = 'block';
     }
 
-    function editCode(idx, code, codeTitle, codeValue, codeAttr1, codeAttr2, codeAttr3, useYn) {
+    function editCode(idx) {
+        const row = document.getElementById(`row-${idx}`);
+        const dtl = JSON.parse(row.dataset.dtl);
+
         editMode = 'edit';
         document.getElementById('editPanelTitle').textContent = '코드 수정';
         document.getElementById('editIdx').value = idx;
-        document.getElementById('editCode').value = code;
+        document.getElementById('editCode').value = dtl.code;
         document.getElementById('editCode').disabled = true;
-        document.getElementById('editCodeTitle').value = codeTitle;
-        document.getElementById('editCodeValue').value = codeValue;
-        document.getElementById('editCodeAttr1').value = codeAttr1;
-        document.getElementById('editCodeAttr2').value = codeAttr2;
-        document.getElementById('editCodeAttr3').value = codeAttr3;
-        document.getElementById('editUseYn').value = useYn;
+        document.getElementById('editCodeTitle').value = dtl.codeTitle || '';
+        document.getElementById('editCodeValue').value = dtl.codeValue || '';
+        document.getElementById('editCodeAttr1').value = dtl.codeAttr1 || '';
+        document.getElementById('editCodeAttr2').value = dtl.codeAttr2 || '';
+        document.getElementById('editCodeAttr3').value = dtl.codeAttr3 || '';
+        document.getElementById('editUseYn').value = dtl.useYn;
         document.getElementById('editPanel').style.display = 'block';
 
         document.querySelectorAll('.dtl-table tr').forEach(tr => tr.classList.remove('selected'));
-        document.getElementById(`row-${idx}`)?.classList.add('selected');
+        row.classList.add('selected');
     }
 
     function closeEditPanel() {
