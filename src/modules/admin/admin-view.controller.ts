@@ -25,7 +25,7 @@ export class AdminViewController {
     return { user: req.user || null };
   }
 
-  @MinLevel("LV099")
+  @MinLevel("99")
   @Get("code")
   @Render("admin/code")
   adminCode(@Req() req: Request) {

@@ -28,39 +28,35 @@ export class RolesGuard implements CanActivate {
     }
 
     // 메서드 또는 클래스에 설정된 MinLevel 데코레이터 값 가져오기
-    const requiredLevelCode = this.reflector.getAllAndOverride<string>(
+    const requiredLevelValue = this.reflector.getAllAndOverride<string>(
       MIN_LEVEL_KEY,
       [context.getHandler(), context.getClass()],
     );
 
     // MinLevel 데코레이터가 없으면 기본 관리자 권한(level > 0) 체크
-    if (!requiredLevelCode) {
+    if (!requiredLevelValue) {
       if (Number(user.level) <= 0) {
         throw new ForbiddenException("관리자 권한이 필요합니다.");
       }
       return true;
     }
 
-    // DB에서 해당 코드의 codeValue 조회
-    const levelCode = await this.dtlCdRepository.findOne({
-      where: {
-        grpCd: "MEMBER_LEVEL",
-        codeValue: user.level.toString(),
-        delYn: YesNo.N,
-        useYn: YesNo.Y,
-      },
-    });
-
-    if (!levelCode) {
-      throw new ForbiddenException("유효하지 않은 권한 설정입니다.");
-    }
-
-    const requiredLevel = parseInt(levelCode.codeValue, 10);
+    const requiredLevel = parseInt(requiredLevelValue, 10);
     const userLevel = Number(user.level);
 
     if (userLevel < requiredLevel) {
+      // 에러 메시지 표시를 위해 코드 정보 조회
+      const levelCode = await this.dtlCdRepository.findOne({
+        where: {
+          grpCd: "MEMBER_LEVEL",
+          codeValue: requiredLevelValue,
+          delYn: YesNo.N,
+          useYn: YesNo.Y,
+        },
+      });
+
       throw new ForbiddenException(
-        `${levelCode.codeTitle} 이상의 권한이 필요합니다.`,
+        `${levelCode?.codeTitle || requiredLevelValue} 이상의 권한이 필요합니다.`,
       );
     }
 

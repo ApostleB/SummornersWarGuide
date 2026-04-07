@@ -6,18 +6,18 @@ import {
   UploadedFile,
   BadRequestException,
   Get,
-  Query, Res, HttpStatus, Delete, Param, Put, Body, Req
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
-import { AdminService } from './admin.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { MinLevel } from '../auth/decorators/min-level.decorator';
-import { GameService } from "../game/game.service";
-import { FileService } from '../../common/file/file.service';
-import { Request, Response } from "express";
-import { AuthUser } from "../../common/middlewares/auth.middleware";
+  Delete,
+  Param,
+  Put,
+  Body,
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { memoryStorage } from "multer";
+import { AdminService } from "./admin.service";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../auth/guards/roles.guard";
+import { MinLevel } from "../auth/decorators/min-level.decorator";
+import { FileService } from "../../common/file/file.service";
 
 const multerOptions = {
   storage: memoryStorage(),
@@ -29,149 +29,50 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly fileService: FileService,
-    private readonly gameService: GameService,
   ) {}
 
+  @MinLevel("99")
   @Post("upload")
-  @UseInterceptors(FileInterceptor('file', multerOptions))
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      throw new BadRequestException('File is required');
-    }
-    const data = await this.fileService.readExcel(file);
-    return { success: true, data };
-  }
-
-  @Post("file/defence")
   @UseInterceptors(FileInterceptor("file", multerOptions))
-  async uploadDefenceFile(
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req: Request,
-  ) {
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException("File is required");
     }
-    const user = req.user as AuthUser;
     const data = await this.fileService.readExcel(file);
-    await this.adminService.defenceArraySave(data, user.memberId);
     return { success: true, data };
   }
 
-  @Get("defence")
-  async defenceList(@Query("keyword") keyword: string, @Res() res: Response) {
-    const defenceList = await this.gameService.getDefenceList(keyword);
-    return res.status(HttpStatus.OK).json(defenceList);
-  }
+  // ========== 코드 관리 (level 99) ==========
 
-  @Delete("defence/:defenceId")
-  async deleteDefence(@Param("defenceId") defenceId: string) {
-    await this.adminService.deleteDefence(defenceId);
-    return { success: true };
-  }
-
-  @Put("attack/:attackId")
-  async updateAttack(
-    @Param("attackId") attackId: string,
-    @Body() updateData: any,
-    @Req() req: Request,
-  ) {
-    const user = req.user as AuthUser;
-    await this.adminService.updateAttack(attackId, updateData, user.memberId);
-    return { success: true };
-  }
-
-  @Delete("attack/:attackId")
-  async deleteAttack(@Param("attackId") attackId: string) {
-    await this.adminService.deleteAttack(attackId);
-    return { success: true };
-  }
-
-  @Get("members/pending")
-  async getPendingMembers() {
-    const members = await this.adminService.getPendingMembers();
-    return { success: true, members };
-  }
-
-  @Put("members/:memberId/status")
-  async updateMemberStatus(
-    @Param("memberId") memberId: string,
-    @Body("status") status: any,
-  ) {
-    await this.adminService.updateMemberStatus(memberId, status);
-    return { success: true };
-  }
-
-  @Get("members")
-  async getAllMembers() {
-    const members = await this.adminService.getAllMembers();
-    return { success: true, members };
-  }
-
-  @Put("members/:memberId/password-reset")
-  async resetPassword(@Param("memberId") memberId: string) {
-    await this.adminService.resetMemberPassword(memberId);
-    return { success: true };
-  }
-
-  @Delete("members/:memberId")
-  async kickMember(@Param("memberId") memberId: string) {
-    await this.adminService.kickMember(memberId);
-    return { success: true };
-  }
-
-  @Get("members/:memberId/logs")
-  async getMemberLogs(@Param("memberId") memberId: string) {
-    const logs = await this.adminService.getMemberLogs(memberId);
-    return { success: true, logs };
-  }
-
-  @Get("codes/member-level")
-  async getMemberLevelCodes() {
-    const codes = await this.adminService.getMemberLevelCodes();
-    return { success: true, codes };
-  }
-
-  @MinLevel("LV099")
-  @Put("members/:memberId/level")
-  async updateMemberLevel(
-    @Param("memberId") memberId: string,
-    @Body("code") code: string,
-  ) {
-    await this.adminService.updateMemberLevel(memberId, code);
-    return { success: true };
-  }
-
-  // ========== 코드 관리 (level 99만 접근 가능) ==========
-
-  @MinLevel("LV099")
+  @MinLevel("99")
   @Get("codes/grp")
   async getGrpCdList() {
     const grpCdList = await this.adminService.getGrpCdList();
     return { success: true, grpCdList };
   }
 
-  @MinLevel("LV099")
+  @MinLevel("99")
   @Get("codes/dtl/:grpCd")
   async getDtlCdList(@Param("grpCd") grpCd: string) {
     const dtlCdList = await this.adminService.getDtlCdList(grpCd);
     return { success: true, dtlCdList };
   }
 
-  @MinLevel("LV099")
+  @MinLevel("99")
   @Post("codes/dtl")
   async createDtlCd(@Body() data: any) {
     const dtlCd = await this.adminService.createDtlCd(data);
     return { success: true, dtlCd };
   }
 
-  @MinLevel("LV099")
+  @MinLevel("99")
   @Put("codes/dtl/:idx")
   async updateDtlCd(@Param("idx") idx: number, @Body() data: any) {
     await this.adminService.updateDtlCd(idx, data);
     return { success: true };
   }
 
-  @MinLevel("LV099")
+  @MinLevel("99")
   @Delete("codes/dtl/:idx")
   async deleteDtlCd(@Param("idx") idx: number) {
     await this.adminService.deleteDtlCd(idx);

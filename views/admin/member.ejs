@@ -54,7 +54,7 @@
         .status-wait { background: #feebc8; color: #975a16; }
         .status-success { background: #c6f6d5; color: #22543d; }
         .status-reject { background: #fff5f5; color: #c53030; }
-        
+
         .member-actions {
             display: flex;
             gap: 8px;
@@ -72,7 +72,8 @@
         .btn-reject { background: #f56565; color: white; }
         .btn-reset { background: #667eea; color: white; }
         .btn-kick { background: #718096; color: white; }
-        
+        .btn-delete { background: #E97300; color: white; }
+
         .member-details {
             max-height: 0;
             overflow: hidden;
@@ -99,7 +100,7 @@
             font-weight: 600;
             color: #2d3748;
         }
-        
+
         .log-container {
             margin-top: 20px;
             background: white;
@@ -228,7 +229,10 @@
                     </div>
                     <div class="member-actions">
                         <button class="btn-small btn-approve" onclick="updateStatus('${m.memberId}', 'SUCCESS')">승인</button>
-                        <button class="btn-small btn-reject" onclick="updateStatus('${m.memberId}', 'REJECT')">거절</button>
+                        ${ m.status === "REJECT" ?
+                            `<button class="btn-small btn-delete" onclick="kickMember('${m.memberId}')">삭제</button>` :
+                            `<button class="btn-small btn-reject" onclick="updateStatus('${m.memberId}', 'REJECT')">거절</button>`
+                        }
                     </div>
                 </div>
             </div>
@@ -272,7 +276,7 @@
                                 <button class="btn-small btn-kick" onclick="kickMember('${m.memberId}')">강퇴</button>
                             </div>
                         </div>
-                        
+
                         <div style="display:flex; justify-content: space-between; align-items: center;">
                             <h4 style="font-size: 14px; color: #4a5568;">최근 로그인 기록</h4>
                             <button class="btn-small" style="background:#edf2f7; color:#4a5568;" onclick="fetchLogs('${m.memberId}')">기록 새로고침</button>
@@ -289,10 +293,10 @@
     function toggleMemberAccordion(memberId) {
         const card = document.getElementById(`member-card-${memberId}`);
         const isOpen = card.classList.contains('open');
-        
+
         // 다른 열린 카드 닫기
         document.querySelectorAll('.member-card.open').forEach(c => c.classList.remove('open'));
-        
+
         if (!isOpen) {
             card.classList.add('open');
             // 열릴 때 자동으로 로그 로드
@@ -380,7 +384,7 @@
     async function fetchLogs(memberId) {
         const container = document.getElementById(`log-container-${memberId}`);
         container.innerHTML = '<div style="padding: 20px; text-align: center; color: #667eea;">불러오는 중...</div>';
-        
+
         try {
             const response = await fetch(`/api/admin/members/${memberId}/logs`, { credentials: 'include' });
             const data = await response.json();

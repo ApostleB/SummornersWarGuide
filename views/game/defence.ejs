@@ -265,6 +265,15 @@
                 renderInlineSlider(defenceId);
                 const body = document.getElementById(`body-${defenceId}`);
                 body.style.maxHeight = body.scrollHeight + 'px';
+
+                // 펼쳐진 defence 카드로 포커싱 이동 (header 높이 고려)
+                const card = document.getElementById(`card-${defenceId}`);
+                if (card) {
+                    const header = document.querySelector('header');
+                    const headerHeight = header ? header.offsetHeight : 0;
+                    const cardTop = card.getBoundingClientRect().top + window.scrollY;
+                    window.scrollTo({ top: cardTop - headerHeight - 10, behavior: 'smooth' });
+                }
             }
         }
 

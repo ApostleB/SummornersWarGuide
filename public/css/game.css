@@ -220,10 +220,8 @@
     border: 1px solid #e8eeff;
     border-radius: 10px;
     padding: 20px;
-    height: 320px;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 .slider-header {
@@ -309,8 +307,6 @@
     line-height: 1.5;
     white-space: pre-wrap;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    max-height: 80px;
-    overflow-y: auto;
 }
 
 .deck-desc-box strong {
@@ -408,9 +404,6 @@
 
 .attack-deck-content {
     animation: fadeIn 0.25s ease;
-    flex: 1;
-    overflow-y: clip;
-    min-height: 0;
 }
 
 /* Attack List Container */
@@ -470,7 +463,6 @@
 
 .attack-list-item .deck-desc-box {
     margin-top: 10px;
-    max-height: 80px;
 }
 
 /* Mobile: 몬스터 이름 5글자 제한 */
