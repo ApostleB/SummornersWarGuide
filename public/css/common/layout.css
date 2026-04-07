@@ -56,7 +56,7 @@ body {
     opacity: 0.85;
 }
 
-.logo,img{
+.logo img {
     width: 100px;
     height: 40px;
 }
@@ -65,9 +65,10 @@ body {
     opacity: 0.85;
 }
 
-.deck-logo,img{
-    width: 70px;
-    height: 40px;
+.deck-logo img {
+    width: 90px;
+    height: 70px;
+    padding-top: 6px;
 }
 /* Search Bar */
 .search-container {
