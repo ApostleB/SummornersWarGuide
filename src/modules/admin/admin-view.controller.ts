@@ -26,21 +26,49 @@ export class AdminViewController {
       content: contentCd ? contentCd.codeValue : "",
     };
   }
+
+  // ========== 방덱관리 ==========
+  @Get("game/register")
+  @Render("admin/game/register")
+  adminGameRegister(@Req() req: Request) {
+    return { user: req.user || null };
+  }
+
+  @Get("game/request")
+  @Render("admin/game/request")
+  adminGameRequest(@Req() req: Request) {
+    return { user: req.user || null };
+  }
+
+  @Get("game/defence")
+  @Render("admin/game/defence")
+  adminGameDefence(@Req() req: Request) {
+    return { user: req.user || null };
+  }
+
+  // ========== 회원관리 ==========
+  @Get("member/request")
+  @Render("admin/member/request")
+  adminMemberRequest(@Req() req: Request) {
+    return { user: req.user || null };
+  }
+
   @Get("member")
-  @Render("admin/member")
+  @Render("admin/member/member")
   adminMember(@Req() req: Request) {
     return { user: req.user || null };
   }
 
-  @Get("defence")
-  @Render("admin/defence")
-  adminDefence(@Req() req: Request) {
+  // ========== 코드 관리 ==========
+  @Get("code/main")
+  @Render("admin/code/main")
+  adminCodeMain(@Req() req: Request) {
     return { user: req.user || null };
   }
 
   @MinLevel("99")
   @Get("code")
-  @Render("admin/code")
+  @Render("admin/code/code")
   adminCode(@Req() req: Request) {
     return { user: req.user || null };
   }

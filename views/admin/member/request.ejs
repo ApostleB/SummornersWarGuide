@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
+    <title>가입신청 관리</title>
+    <link rel="stylesheet" href="/public/css/common/layout.css">
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/admin.css">
+    <style>
+        .member-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 12px;
+            overflow: hidden;
+            border: 1px solid #edf2f7;
+        }
+        .member-header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .member-info-brief {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .member-name-tag {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1a202c;
+        }
+        .member-status-badge {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .status-wait { background: #feebc8; color: #975a16; }
+        .status-success { background: #c6f6d5; color: #22543d; }
+        .status-reject { background: #fff5f5; color: #c53030; }
+        .status-fail { background: #fed7d7; color: #c53030; }
+
+        .member-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-approve { background: #48bb78; color: white; }
+        .btn-approve:hover { background: #38a169; }
+        .btn-reject { background: #f56565; color: white; }
+        .btn-reject:hover { background: #e53e3e; }
+        .btn-delete { background: #E97300; color: white; }
+        .btn-delete:hover { background: #dd6b00; }
+
+        .request-date {
+            font-size: 12px;
+            color: #a0aec0;
+        }
+
+        @media (max-width: 600px) {
+            .member-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .member-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+<%- include('../../partials/header') %>
+
+<main class="main-content">
+    <div class="admin-container">
+        <div class="page-header">
+            <h1 class="page-title">가입신청 관리</h1>
+            <p class="page-desc">가입 신청한 회원들을 승인 또는 거절합니다</p>
+        </div>
+
+        <div id="pendingMemberList">
+            <div class="loading-inline">불러오는 중...</div>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchPendingMembers();
+    });
+
+    async function fetchPendingMembers() {
+        try {
+            const response = await fetch('/api/admin/members/pending', { credentials: 'include' });
+            const data = await response.json();
+            renderPendingMembers(data.members);
+        } catch (error) {
+            console.error('Failed to fetch pending members:', error);
+            document.getElementById('pendingMemberList').innerHTML =
+                '<div class="no-results">데이터를 불러오지 못했습니다.</div>';
+        }
+    }
+
+    function renderPendingMembers(members) {
+        const container = document.getElementById('pendingMemberList');
+        if (!members || members.length === 0) {
+            container.innerHTML = '<div class="no-results">가입 신청 내역이 없습니다.</div>';
+            return;
+        }
+
+        container.innerHTML = members.map(m => `
+            <div class="member-card" id="member-${m.memberId}">
+                <div class="member-header">
+                    <div class="member-info-brief">
+                        <span class="member-name-tag">${m.memberNickname} (${m.memberName})</span>
+                        <span class="member-status-badge status-${m.status.toLowerCase()}">${getStatusText(m.status)}</span>
+                        <span class="request-date">신청일: ${new Date(m.inputDt).toLocaleDateString()}</span>
+                    </div>
+                    <div class="member-actions">
+                        <button class="btn-small btn-approve" onclick="updateStatus('${m.memberId}', 'SUCCESS')">승인</button>
+                        ${m.status === "REJECT" || m.status === "FAIL" ?
+                            `<button class="btn-small btn-delete" onclick="kickMember('${m.memberId}')">삭제</button>` :
+                            `<button class="btn-small btn-reject" onclick="updateStatus('${m.memberId}', 'REJECT')">거절</button>`
+                        }
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function getStatusText(status) {
+        const statusMap = {
+            'WAIT': '대기',
+            'REJECT': '거절',
+            'FAIL': '실패',
+            'SUCCESS': '승인'
+        };
+        return statusMap[status] || status;
+    }
+
+    async function updateStatus(memberId, status) {
+        const actionText = status === 'SUCCESS' ? '승인' : '거절';
+        if (!confirm(`회원을 ${actionText}하시겠습니까?`)) return;
+
+        try {
+            const response = await fetch(`/api/admin/members/${memberId}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status }),
+                credentials: 'include'
+            });
+            if (response.ok) {
+                alert(`${actionText} 처리되었습니다.`);
+                fetchPendingMembers();
+            } else {
+                alert('처리에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Failed to update status:', error);
+            alert('오류가 발생했습니다.');
+        }
+    }
+
+    async function kickMember(memberId) {
+        if (!confirm('정말 이 신청을 삭제하시겠습니까?')) return;
+
+        try {
+            const response = await fetch(`/api/admin/members/${memberId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (response.ok) {
+                alert('삭제되었습니다.');
+                fetchPendingMembers();
+            } else {
+                alert('삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Failed to delete member:', error);
+            alert('오류가 발생했습니다.');
+        }
+    }
+</script>
+</body>
+</html>

@@ -4,22 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
-    <title>관리자 - 회원 관리</title>
+    <title>회원 관리</title>
     <link rel="stylesheet" href="/public/css/common/layout.css">
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/admin.css">
     <style>
-        .admin-section {
-            margin-bottom: 40px;
-        }
-        .section-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #667eea;
-            color: #2d3748;
-        }
         .member-card {
             background: white;
             border-radius: 12px;
@@ -51,9 +40,7 @@
             border-radius: 20px;
             font-weight: 600;
         }
-        .status-wait { background: #feebc8; color: #975a16; }
         .status-success { background: #c6f6d5; color: #22543d; }
-        .status-reject { background: #fff5f5; color: #c53030; }
 
         .member-actions {
             display: flex;
@@ -68,11 +55,10 @@
             border: none;
             transition: all 0.2s;
         }
-        .btn-approve { background: #48bb78; color: white; }
-        .btn-reject { background: #f56565; color: white; }
         .btn-reset { background: #667eea; color: white; }
+        .btn-reset:hover { background: #5a67d8; }
         .btn-kick { background: #718096; color: white; }
-        .btn-delete { background: #E97300; color: white; }
+        .btn-kick:hover { background: #4a5568; }
 
         .member-details {
             max-height: 0;
@@ -136,33 +122,39 @@
         .member-card.open .member-details {
             max-height: 1000px;
         }
+
+        .details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 15px;
+        }
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .log-header h4 {
+            font-size: 14px;
+            color: #4a5568;
+        }
     </style>
 </head>
 <body>
-<%- include('../partials/header') %>
+<%- include('../../partials/header') %>
 
 <main class="main-content">
     <div class="admin-container">
         <div class="page-header">
             <h1 class="page-title">회원 관리</h1>
-            <p class="page-desc">가입 신청 승인 및 회원 정보를 관리합니다</p>
+            <p class="page-desc">회원 정보와 권한을 관리합니다</p>
         </div>
 
-        <!-- 1. 가입 신청 리스트 -->
-        <section class="admin-section">
-            <h2 class="section-title">가입 신청 대기</h2>
-            <div id="pendingMemberList">
-                <div class="loading-inline">불러오는 중...</div>
-            </div>
-        </section>
-
-        <!-- 2. 회원 목록 -->
-        <section class="admin-section">
-            <h2 class="section-title">전체 회원 관리</h2>
-            <div id="activeMemberList">
-                <div class="loading-inline">불러오는 중...</div>
-            </div>
-        </section>
+        <div id="activeMemberList">
+            <div class="loading-inline">불러오는 중...</div>
+        </div>
     </div>
 </main>
 
@@ -171,7 +163,6 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         await fetchMemberLevelCodes();
-        fetchPendingMembers();
         fetchActiveMembers();
     });
 
@@ -192,16 +183,6 @@
         }).join('');
     }
 
-    async function fetchPendingMembers() {
-        try {
-            const response = await fetch('/api/admin/members/pending', { credentials: 'include' });
-            const data = await response.json();
-            renderPendingMembers(data.members);
-        } catch (error) {
-            console.error('Failed to fetch pending members:', error);
-        }
-    }
-
     async function fetchActiveMembers() {
         try {
             const response = await fetch('/api/admin/members', { credentials: 'include' });
@@ -209,34 +190,9 @@
             renderActiveMembers(data.members);
         } catch (error) {
             console.error('Failed to fetch active members:', error);
+            document.getElementById('activeMemberList').innerHTML =
+                '<div class="no-results">데이터를 불러오지 못했습니다.</div>';
         }
-    }
-
-    function renderPendingMembers(members) {
-        const container = document.getElementById('pendingMemberList');
-        if (!members || members.length === 0) {
-            container.innerHTML = '<div class="no-results">가입 신청 내역이 없습니다.</div>';
-            return;
-        }
-
-        container.innerHTML = members.map(m => `
-            <div class="member-card">
-                <div class="member-header" style="cursor: default;">
-                    <div class="member-info-brief">
-                        <span class="member-name-tag">${m.memberNickname} (${m.memberName})</span>
-                        <span class="member-status-badge status-${m.status.toLowerCase()}">${m.status}</span>
-                        <span style="font-size: 12px; color: #a0aec0;">신청일: ${new Date(m.inputDt).toLocaleDateString()}</span>
-                    </div>
-                    <div class="member-actions">
-                        <button class="btn-small btn-approve" onclick="updateStatus('${m.memberId}', 'SUCCESS')">승인</button>
-                        ${ m.status === "REJECT" ?
-                            `<button class="btn-small btn-delete" onclick="kickMember('${m.memberId}')">삭제</button>` :
-                            `<button class="btn-small btn-reject" onclick="updateStatus('${m.memberId}', 'REJECT')">거절</button>`
-                        }
-                    </div>
-                </div>
-            </div>
-        `).join('');
     }
 
     function renderActiveMembers(members) {
@@ -260,7 +216,7 @@
                 </div>
                 <div class="member-details">
                     <div class="details-inner">
-                        <div style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px;">
+                        <div class="details-header">
                             <div class="info-grid" style="margin-bottom:0; flex:1;">
                                 <div class="info-item"><label>ID</label><span>${m.memberName}</span></div>
                                 <div class="info-item"><label>닉네임</label><span>${m.memberNickname}</span></div>
@@ -277,8 +233,8 @@
                             </div>
                         </div>
 
-                        <div style="display:flex; justify-content: space-between; align-items: center;">
-                            <h4 style="font-size: 14px; color: #4a5568;">최근 로그인 기록</h4>
+                        <div class="log-header">
+                            <h4>최근 로그인 기록</h4>
                             <button class="btn-small" style="background:#edf2f7; color:#4a5568;" onclick="fetchLogs('${m.memberId}')">기록 새로고침</button>
                         </div>
                         <div class="log-container" id="log-container-${m.memberId}">
@@ -294,32 +250,11 @@
         const card = document.getElementById(`member-card-${memberId}`);
         const isOpen = card.classList.contains('open');
 
-        // 다른 열린 카드 닫기
         document.querySelectorAll('.member-card.open').forEach(c => c.classList.remove('open'));
 
         if (!isOpen) {
             card.classList.add('open');
-            // 열릴 때 자동으로 로그 로드
             fetchLogs(memberId);
-        }
-    }
-
-    async function updateStatus(memberId, status) {
-        if (!confirm(`회원 상태를 ${status === 'SUCCESS' ? '승인' : '거절'}하시겠습니까?`)) return;
-        try {
-            const response = await fetch(`/api/admin/members/${memberId}/status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status }),
-                credentials: 'include'
-            });
-            if (response.ok) {
-                alert('처리되었습니다.');
-                fetchPendingMembers();
-                fetchActiveMembers();
-            }
-        } catch (error) {
-            alert('오류가 발생했습니다.');
         }
     }
 
@@ -332,8 +267,11 @@
             });
             if (response.ok) {
                 alert('비밀번호가 초기화되었습니다.');
+            } else {
+                alert('비밀번호 초기화에 실패했습니다.');
             }
         } catch (error) {
+            console.error('Failed to reset password:', error);
             alert('오류가 발생했습니다.');
         }
     }
@@ -348,8 +286,11 @@
             if (response.ok) {
                 alert('강퇴 처리되었습니다.');
                 fetchActiveMembers();
+            } else {
+                alert('강퇴 처리에 실패했습니다.');
             }
         } catch (error) {
+            console.error('Failed to kick member:', error);
             alert('오류가 발생했습니다.');
         }
     }
@@ -376,6 +317,7 @@
                 selectEl.value = '';
             }
         } catch (error) {
+            console.error('Failed to update member level:', error);
             alert('오류가 발생했습니다.');
             selectEl.value = '';
         }
@@ -390,6 +332,7 @@
             const data = await response.json();
             renderLogs(memberId, data.logs);
         } catch (error) {
+            console.error('Failed to fetch logs:', error);
             container.innerHTML = '<div style="padding: 20px; text-align: center; color: #f56565;">로그를 불러오지 못했습니다.</div>';
         }
     }

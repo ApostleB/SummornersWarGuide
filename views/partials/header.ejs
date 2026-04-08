@@ -3,8 +3,8 @@
         <a href="/" class="logo">
             <img src="/public/image/logo.gif" alt="SW Helper">
         </a>
-        <a class="deck-logo" href="/game" >
-            <img class="" src="/public/image/guild_icon.png" alt="">
+        <a class="deck-logo" href="/game">
+            <img src="/public/image/guild_icon.png" alt="">
         </a>
         <button class="menu-toggle" id="menuToggle" aria-label="메뉴">
             <span></span>
@@ -17,31 +17,57 @@
 <div class="menu-overlay" id="menuOverlay"></div>
 
 <nav class="side-menu" id="sideMenu">
-    <!-- 일반 메뉴 -->
-    <div class="menu-wrapper" id="normalMenu">
+    <div class="menu-wrapper">
         <ul class="menu-list">
+            <!-- 마이페이지 -->
             <li class="menu-item">
                 <a href="/mypage" class="menu-link">마이페이지</a>
             </li>
+            <!-- 방덱 검색 -->
             <li class="menu-item">
-                <a href="/game" class="menu-link">방덱 리스트</a>
+                <a href="/game" class="menu-link">방덱 검색</a>
             </li>
+
             <% if (user?.level >= 50) { %>
-            <li class="menu-item menu-divider"></li>
-            <li class="menu-item">
-                <a href="/admin" class="menu-link">대시보드</a>
-            </li>
-            <li class="menu-item">
-                <a href="/admin/defence" class="menu-link">방덱관리</a>
-            </li>
-            <li class="menu-item">
-                <a href="/admin/member" class="menu-link">회원관리</a>
-            </li>
-            <li class="menu-item">
-                <a href="/admin/code" class="menu-link">코드관리</a>
-            </li>
+                <!-- 방덱관리 (아코디언) -->
+                <li class="menu-item menu-accordion menu-bottom">
+                    <div class="menu-accordion-header" onclick="toggleMenuAccordion(this)">
+                        <span>방덱관리</span>
+                        <span class="accordion-arrow">▼</span>
+                    </div>
+                    <ul class="menu-accordion-body">
+                        <li><a href="/admin/game/register" class="menu-sub-link">방덱등록</a></li>
+                        <li><a href="/admin/game/request" class="menu-sub-link">방덱등록신청 관리</a></li>
+                        <li><a href="/admin/game/defence" class="menu-sub-link">방덱 관리</a></li>
+                    </ul>
+                </li>
+
+                <!-- 회원관리 (아코디언) -->
+                <li class="menu-item menu-accordion">
+                    <div class="menu-accordion-header" onclick="toggleMenuAccordion(this)">
+                        <span>회원관리</span>
+                        <span class="accordion-arrow">▼</span>
+                    </div>
+                    <ul class="menu-accordion-body">
+                        <li><a href="/admin/member/request" class="menu-sub-link">가입신청 관리</a></li>
+                        <li><a href="/admin/member" class="menu-sub-link">회원 관리</a></li>
+                    </ul>
+                </li>
+
+                <!-- 코드 관리 (아코디언) -->
+                <li class="menu-item menu-accordion">
+                    <div class="menu-accordion-header" onclick="toggleMenuAccordion(this)">
+                        <span>코드 관리</span>
+                        <span class="accordion-arrow">▼</span>
+                    </div>
+                    <ul class="menu-accordion-body">
+                        <li><a href="/admin/code/main" class="menu-sub-link">메인 관리</a></li>
+                        <li><a href="/admin/code" class="menu-sub-link">코드 관리</a></li>
+                    </ul>
+                </li>
             <% } %>
         </ul>
+
         <ul class="menu-list menu-bottom">
             <% if (user) { %>
                 <li class="menu-item">
@@ -52,12 +78,6 @@
                     <a href="/auth/login" class="menu-link login-link">로그인</a>
                 </li>
             <% } %>
-        </ul>
-    </div>
-
-    <!-- 관리자 메뉴 -->
-    <div class="menu-wrapper" id="adminMenu">
-        <ul class="menu-list">
         </ul>
     </div>
 </nav>
@@ -85,14 +105,12 @@
     menuToggle.addEventListener('click', toggleMenu);
     menuOverlay.addEventListener('click', closeMenu);
 
-    // ESC 키로 메뉴 닫기
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && sideMenu.classList.contains('open')) {
             closeMenu();
         }
     });
 
-    // 로그아웃 링크 클릭 시 처리
     const logoutLinks = document.querySelectorAll('.logout-link');
     logoutLinks.forEach(link => {
         link.addEventListener('click', async (e) => {
@@ -107,4 +125,18 @@
         });
     });
 })();
+
+function toggleMenuAccordion(header) {
+    const accordion = header.closest('.menu-accordion');
+    if (!accordion) return;
+
+    // 다른 아코디언 닫기
+    document.querySelectorAll('.menu-accordion.open').forEach(item => {
+        if (item !== accordion) {
+            item.classList.remove('open');
+        }
+    });
+
+    accordion.classList.toggle('open');
+}
 </script>
