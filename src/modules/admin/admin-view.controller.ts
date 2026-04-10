@@ -28,12 +28,6 @@ export class AdminViewController {
   }
 
   // ========== 방덱관리 ==========
-  @Get("game/register")
-  @Render("admin/game/register")
-  adminGameRegister(@Req() req: Request) {
-    return { user: req.user || null };
-  }
-
   @Get("game/request")
   @Render("admin/game/request")
   adminGameRequest(@Req() req: Request) {

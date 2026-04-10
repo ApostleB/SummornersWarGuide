@@ -39,31 +39,6 @@ export class AdminGameController {
     private readonly gameService: GameModuleService,
   ) {}
 
-  // 몬스터 자동완성 검색
-  @Get("monsters/search")
-  async searchMonsters(@Query("keyword") keyword: string) {
-    const monsters = await this.adminGameService.searchMonsters(keyword);
-    return { success: true, monsters };
-  }
-
-  // 방덱 등록 신청
-  @Post("deck/register")
-  async registerDeck(@Body() data: any, @Req() req: Request) {
-    const user = req.user as AuthUser;
-    const result = await this.adminGameService.registerDeck({
-      defenceMonsterA: data.defenceMonsterA,
-      defenceMonsterB: data.defenceMonsterB,
-      defenceMonsterC: data.defenceMonsterC,
-      attackMonsterA: data.attackMonsterA,
-      attackMonsterB: data.attackMonsterB,
-      attackMonsterC: data.attackMonsterC,
-      deckDesc1: data.deckDesc1,
-      deckDesc2: data.deckDesc2,
-      memberId: user.memberId,
-    });
-    return result;
-  }
-
   // 승인 대기 방덱 목록
   @Get("defence/pending")
   async pendingDefenceList(@Query("keyword") keyword: string) {

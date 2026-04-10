@@ -55,18 +55,18 @@ export class AuthService {
     if (regCodeCheck !== null) {
       const codeCheck = regCodeCheck.codeValue === regCode;
       if (codeCheck) {
-        regMessage = SignupMessage.SUCCESS;
-        status = MemberStatus.SUCCESS;
+        regMessage = SignupMessage.WAIT;
+        status = MemberStatus.WAIT;
       } else {
         regMessage = SignupMessage.REJECT;
         status = MemberStatus.REJECT;
       }
     } else {
-      regMessage = SignupMessage.WAIT;
-      status = MemberStatus.WAIT;
+      regMessage = SignupMessage.FAIL;
+      status = MemberStatus.FAIL;
     }
 
-    if (status !== MemberStatus.SUCCESS && status !== MemberStatus.WAIT) {
+    if (status !== MemberStatus.WAIT) {
       throw new BadRequestException(regMessage);
     }
 

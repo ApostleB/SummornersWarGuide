@@ -85,6 +85,140 @@ export class GameService {
     };
   }
 
+  // 몬스터 자동완성 검색
+  async searchMonsters(keyword: string): Promise<string[]> {
+    if (!keyword || keyword.length < 1) return [];
+
+    const defenceA = await this.defenceRepository
+      .createQueryBuilder("defence")
+      .select("defence.monsterA", "monster")
+      .where("defence.monsterA LIKE :keyword", { keyword: `%${keyword}%` })
+      .getRawMany();
+
+    const defenceB = await this.defenceRepository
+      .createQueryBuilder("defence")
+      .select("defence.monsterB", "monster")
+      .where("defence.monsterB LIKE :keyword", { keyword: `%${keyword}%` })
+      .getRawMany();
+
+    const defenceC = await this.defenceRepository
+      .createQueryBuilder("defence")
+      .select("defence.monsterC", "monster")
+      .where("defence.monsterC LIKE :keyword", { keyword: `%${keyword}%` })
+      .getRawMany();
+
+    const attackA = await this.attackRepository
+      .createQueryBuilder("attack")
+      .select("attack.monsterA", "monster")
+      .where("attack.monsterA LIKE :keyword", { keyword: `%${keyword}%` })
+      .getRawMany();
+
+    const attackB = await this.attackRepository
+      .createQueryBuilder("attack")
+      .select("attack.monsterB", "monster")
+      .where("attack.monsterB LIKE :keyword", { keyword: `%${keyword}%` })
+      .getRawMany();
+
+    const attackC = await this.attackRepository
+      .createQueryBuilder("attack")
+      .select("attack.monsterC", "monster")
+      .where("attack.monsterC LIKE :keyword", { keyword: `%${keyword}%` })
+      .getRawMany();
+
+    const allMonsters = [
+      ...defenceA,
+      ...defenceB,
+      ...defenceC,
+      ...attackA,
+      ...attackB,
+      ...attackC,
+    ].map((r) => r.monster);
+    const uniqueMonsters = [...new Set(allMonsters)].filter(Boolean);
+    return uniqueMonsters.slice(0, 10);
+  }
+
+  // 방덱 등록 신청
+  async registerDeck(data: {
+    defenceMonsterA: string;
+    defenceMonsterB: string;
+    defenceMonsterC: string;
+    attackMonsterA: string;
+    attackMonsterB: string;
+    attackMonsterC: string;
+    deckDesc1: string;
+    deckDesc2: string;
+    memberId: string;
+  }): Promise<{ success: boolean; message: string }> {
+    const monsterTypeCodes = await this.dtlCdRepository.find({
+      where: { grpCd: "MONSTER_TYPE_CODE" },
+    });
+
+    const findTypeByTitle = (title: string): DtlCd | null => {
+      if (!title) return null;
+      return monsterTypeCodes.find((dtlCd) => dtlCd.codeTitle === title) || null;
+    };
+
+    const getTypeTitle = (name: string) => (name ? name.slice(0, 1) : null);
+
+    // 기존 방덱 찾기
+    let defence = await this.defenceRepository.findOne({
+      where: {
+        monsterA: data.defenceMonsterA,
+        monsterB: data.defenceMonsterB,
+        monsterC: data.defenceMonsterC,
+      },
+    });
+
+    // 방덱이 없으면 새로 생성 (confirmYn = 'N')
+    if (!defence) {
+      defence = this.defenceRepository.create({
+        monsterA: data.defenceMonsterA,
+        monsterAType: findTypeByTitle(getTypeTitle(data.defenceMonsterA)),
+        monsterB: data.defenceMonsterB,
+        monsterBType: findTypeByTitle(getTypeTitle(data.defenceMonsterB)),
+        monsterC: data.defenceMonsterC,
+        monsterCType: findTypeByTitle(getTypeTitle(data.defenceMonsterC)),
+        inputId: data.memberId,
+        confirmYn: "N",
+      });
+      defence = await this.defenceRepository.save(defence);
+    }
+
+    // 중복 공덱 체크
+    const existingAttack = await this.attackRepository.findOne({
+      where: {
+        defenceId: defence.defenceId,
+        monsterA: data.attackMonsterA,
+        monsterB: data.attackMonsterB,
+        monsterC: data.attackMonsterC,
+        deckDesc1: data.deckDesc1 || "",
+        deckDesc2: data.deckDesc2 || "",
+      },
+    });
+
+    if (existingAttack) {
+      return { success: false, message: "이미 동일한 공덱이 등록되어 있습니다." };
+    }
+
+    // 공덱 생성 (confirmYn = 'N')
+    const newAttack = this.attackRepository.create({
+      defenceId: defence.defenceId,
+      monsterA: data.attackMonsterA,
+      monsterAType: findTypeByTitle(getTypeTitle(data.attackMonsterA)),
+      monsterB: data.attackMonsterB,
+      monsterBType: findTypeByTitle(getTypeTitle(data.attackMonsterB)),
+      monsterC: data.attackMonsterC,
+      monsterCType: findTypeByTitle(getTypeTitle(data.attackMonsterC)),
+      deckDesc1: data.deckDesc1 || "",
+      deckDesc2: data.deckDesc2 || "",
+      inputId: data.memberId,
+      confirmYn: "N",
+    });
+    await this.attackRepository.save(newAttack);
+
+    return { success: true, message: "등록 신청이 완료되었습니다." };
+  }
+
   async getDefenceDetail(defenceId: string): Promise<any> {
     const defence = await this.defenceRepository
       .createQueryBuilder("defence")

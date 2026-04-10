@@ -11,4 +11,9 @@ export class GameViewController {
     return { user: req.user || null };
   }
 
+  @Get("register")
+  @Render("game/register")
+  register(@Req() req: Request) {
+    return { user: req.user || null };
+  }
 }

@@ -13,8 +13,9 @@ export interface MemberWithAuth extends Member {
 
 export enum SignupMessage {
   SUCCESS = "가입이 승인되었습니다.",
-  REJECT = "인증코드가 일치하지 않습니다..",
+  REJECT = "인증코드가 일치하지 않아 가입이 거절되었습니다.\n코드를 다시 확인해주세요.",
   WAIT = "가입에 성공했습니다.\n관리자 승인대기중입니다.",
+  FAIL = "인증코드가 일치하지 않습니다.\n코드를 다시 확인해주세요.",
 }
 export enum MemberStatus {
   SUCCESS = "SUCCESS",
