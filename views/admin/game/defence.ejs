@@ -251,8 +251,8 @@
                         </div>
                         <div class="attack-body-row">
                             <div class="attack-desc-list">
-                                ${attack.deckDesc1 ? `<div class="attack-desc-item"><strong>비고1:</strong> ${attack.deckDesc1}</div>` : ''}
-                                ${attack.deckDesc2 ? `<div class="attack-desc-item"><strong>비고2:</strong> ${attack.deckDesc2}</div>` : ''}
+                                ${attack.deckDesc1 ? `<div class="attack-desc-item"><strong>비고1:</strong> ${attack.deckDesc1.replace(/\n/g, '<br>')}</div>` : ''}
+                                ${attack.deckDesc2 ? `<div class="attack-desc-item"><strong>비고2:</strong> ${attack.deckDesc2.replace(/\n/g, '<br>')}</div>` : ''}
                                 ${!attack.deckDesc1 && !attack.deckDesc2 ? '<div class="attack-desc-empty">설명 없음</div>' : ''}
                             </div>
                             <div class="attack-view-actions">

@@ -373,6 +373,9 @@ export class AdminGameService {
             .replace(/[\r\n\t\s]+/g, " ")
             .trim() || "";
 
+      const cleanWithNewlines = (val: any) =>
+          val?.toString().trim() || "";
+
         const getTypeTitle = (name: string) => (name ? name.slice(0, 1) : null);
 
         const defenceData = {
@@ -382,7 +385,6 @@ export class AdminGameService {
           typeB: findTypeByTitle(getTypeTitle(clean(element["방덱2"]))),
           monsterC: clean(element["방덱3"]),
           typeC: findTypeByTitle(getTypeTitle(clean(element["방덱3"]))),
-          description: clean(element["비고"]),
         };
 
         const attackData = {
@@ -392,8 +394,8 @@ export class AdminGameService {
           typeB: findTypeByTitle(getTypeTitle(clean(element["공덱2"]))),
           monsterC: clean(element["공덱3"]),
           typeC: findTypeByTitle(getTypeTitle(clean(element["공덱3"]))),
-          deckDesc1: clean(element["비고1"]),
-          deckDesc2: clean(element["비고2"]),
+          deckDesc1: cleanWithNewlines(element["비고1"]),
+          deckDesc2: cleanWithNewlines(element["비고2"]),
         };
 
         let defence = await this.defenceRepository.findOne({
@@ -412,7 +414,8 @@ export class AdminGameService {
             monsterBType: defenceData.typeB,
             monsterC: defenceData.monsterC,
             monsterCType: defenceData.typeC,
-            description: defenceData.description,
+            inputId: memberId,
+            confirmYn: "Y",
           });
           defence = await this.defenceRepository.save(defence);
           console.log(`[신규 방덱 저장] ID: ${defence.defenceId}`);
@@ -426,8 +429,6 @@ export class AdminGameService {
             monsterC: attackData.monsterC,
             deckDesc1: attackData.deckDesc1,
             deckDesc2: attackData.deckDesc2,
-            inputId: memberId,
-            confirmYn: "Y",
           },
         });
 

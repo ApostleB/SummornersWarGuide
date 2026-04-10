@@ -147,8 +147,8 @@
             }
 
             container.innerHTML = defenceList.map(defence => `
-                <div class="defence-card" id="card-${defence.defenceId}" data-id="${defence.defenceId}">
-                    <div class="card-header" onclick="toggleAccordion('${defence.defenceId}')">
+                <div class="defence-card" id="card-${defence.defenceId}" data-id="${defence.defenceId}" onclick="toggleAccordion('${defence.defenceId}')">
+                    <div class="card-header" >
                         <div class="monster-deck">
                             ${renderMonster(defence.defenceMonsterA)}
                             ${renderMonster(defence.defenceMonsterB)}
@@ -235,11 +235,11 @@
                             </div>
                             <div class="deck-desc-container">
                                 ${currentDeck.deckDesc1
-                                    ? `<div class="deck-desc-box">${currentDeck.deckDesc1}</div>`
+                                    ? `<div class="deck-desc-box">${currentDeck.deckDesc1.replace(/\n/g, '<br>')}</div>`
                                     : ''
                                 }
                                 ${currentDeck.deckDesc2
-                                    ? `<div class="deck-desc-box">${currentDeck.deckDesc2}</div>`
+                                    ? `<div class="deck-desc-box">${currentDeck.deckDesc2.replace(/\n/g, '<br>')}</div>`
                                     : ''
                                 }
                                 ${!currentDeck.deckDesc1 && !currentDeck.deckDesc2
