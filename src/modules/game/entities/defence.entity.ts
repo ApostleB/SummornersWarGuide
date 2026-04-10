@@ -53,6 +53,14 @@ export class Defence {
   @Column({ name: "UPDATE_DT", type: "datetime", nullable: true })
   updateDt: Date;
 
+  @Column({
+    name: "CONFIRM_YN",
+    type: "enum",
+    enum: ["Y", "N"],
+    default: "N",
+  })
+  confirmYn: "Y" | "N";
+
   @OneToMany(() => Attack, (attack) => attack.defence)
   attackList: Attack[];
 

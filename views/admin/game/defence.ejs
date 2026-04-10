@@ -123,8 +123,8 @@
         try {
             const keyword = searchInput.value.trim();
             const apiUrl = keyword
-                ? `/api/game/defence?keyword=${encodeURIComponent(keyword)}`
-                : '/api/game/defence';
+                ? `/api/admin/defence?keyword=${encodeURIComponent(keyword)}`
+                : '/api/admin/defence';
 
             const response = await fetch(apiUrl, {
                 method: 'GET',

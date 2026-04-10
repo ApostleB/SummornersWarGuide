@@ -32,16 +32,17 @@ export class GameService {
       .leftJoinAndSelect("defence.monsterAType", "mAType")
       .leftJoinAndSelect("defence.monsterBType", "mBType")
       .leftJoinAndSelect("defence.monsterCType", "mCType")
-      .leftJoin("defence.attackList", "attack")
+      .leftJoin("defence.attackList", "attack", "attack.confirmYn = :confirmYn", { confirmYn: "Y" })
       .addSelect("COUNT(attack.attackId)", "attackCount")
       .addSelect("MAX(attack.inputDt)", "lastAttackDate")
+      .where("defence.confirmYn = :defenceConfirm", { defenceConfirm: "Y" })
       .groupBy("defence.defenceId")
       .addGroupBy("mAType.code")
       .addGroupBy("mBType.code")
       .addGroupBy("mCType.code");
 
     if (keyword) {
-      query.where(
+      query.andWhere(
         "(defence.monsterA LIKE :keyword OR defence.monsterB LIKE :keyword OR defence.monsterC LIKE :keyword)",
         { keyword: `%${keyword}%` },
       );
@@ -87,7 +88,7 @@ export class GameService {
   async getDefenceDetail(defenceId: string): Promise<any> {
     const defence = await this.defenceRepository
       .createQueryBuilder("defence")
-      .leftJoinAndSelect("defence.attackList", "attackList")
+      .leftJoinAndSelect("defence.attackList", "attackList", "attackList.confirmYn = :confirmYn", { confirmYn: "Y" })
       .leftJoinAndSelect("attackList.monsterAType", "amAType")
       .leftJoinAndSelect("attackList.monsterBType", "amBType")
       .leftJoinAndSelect("attackList.monsterCType", "amCType")

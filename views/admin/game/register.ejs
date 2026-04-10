@@ -8,6 +8,170 @@
     <link rel="stylesheet" href="/public/css/common/layout.css">
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/admin.css">
+    <style>
+        .register-form {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .form-section {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .form-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title .badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .badge-defence { background: #e6fffa; color: #234e52; }
+        .badge-attack { background: #fff5f5; color: #c53030; }
+
+        .monster-inputs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .monster-input-wrapper {
+            position: relative;
+        }
+        .monster-input-wrapper label {
+            display: block;
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        .monster-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .monster-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+        .suggestions.active {
+            display: block;
+        }
+        .suggestion-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        .suggestion-item:hover {
+            background: #f7fafc;
+            color: #667eea;
+        }
+
+        .desc-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .desc-input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+        .desc-input-wrapper label {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        .desc-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        .desc-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        .btn-secondary {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        @media (max-width: 600px) {
+            .monster-inputs {
+                grid-template-columns: 1fr;
+            }
+            .desc-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
 <%- include('../../partials/header') %>
@@ -19,15 +183,206 @@
             <p class="page-desc">새로운 방어덱과 공략덱을 등록합니다</p>
         </div>
 
-        <div class="content-card">
-            <div class="card-body">
-                <p class="empty-state">방덱등록 기능 준비 중입니다.</p>
+        <div class="register-form">
+            <!-- 방덱 입력 -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span class="badge badge-defence">방덱</span>
+                    방어덱 몬스터
+                </div>
+                <div class="monster-inputs">
+                    <div class="monster-input-wrapper">
+                        <label>몬스터 A (리더)</label>
+                        <input type="text" class="monster-input" id="defenceMonsterA" placeholder="몬스터 이름" autocomplete="off">
+                        <div class="suggestions" id="suggestionsDefenceA"></div>
+                    </div>
+                    <div class="monster-input-wrapper">
+                        <label>몬스터 B</label>
+                        <input type="text" class="monster-input" id="defenceMonsterB" placeholder="몬스터 이름" autocomplete="off">
+                        <div class="suggestions" id="suggestionsDefenceB"></div>
+                    </div>
+                    <div class="monster-input-wrapper">
+                        <label>몬스터 C</label>
+                        <input type="text" class="monster-input" id="defenceMonsterC" placeholder="몬스터 이름" autocomplete="off">
+                        <div class="suggestions" id="suggestionsDefenceC"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 공덱 입력 -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span class="badge badge-attack">공덱</span>
+                    공략덱 몬스터
+                </div>
+                <div class="monster-inputs">
+                    <div class="monster-input-wrapper">
+                        <label>몬스터 A (리더)</label>
+                        <input type="text" class="monster-input" id="attackMonsterA" placeholder="몬스터 이름" autocomplete="off">
+                        <div class="suggestions" id="suggestionsAttackA"></div>
+                    </div>
+                    <div class="monster-input-wrapper">
+                        <label>몬스터 B</label>
+                        <input type="text" class="monster-input" id="attackMonsterB" placeholder="몬스터 이름" autocomplete="off">
+                        <div class="suggestions" id="suggestionsAttackB"></div>
+                    </div>
+                    <div class="monster-input-wrapper">
+                        <label>몬스터 C</label>
+                        <input type="text" class="monster-input" id="attackMonsterC" placeholder="몬스터 이름" autocomplete="off">
+                        <div class="suggestions" id="suggestionsAttackC"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 비고 입력 -->
+            <div class="form-section">
+                <div class="section-title">비고</div>
+                <div class="desc-inputs">
+                    <div class="desc-input-wrapper">
+                        <label>비고 1</label>
+                        <textarea class="desc-textarea" id="deckDesc1" placeholder="덱 설명, 룬 세팅 등"></textarea>
+                    </div>
+                    <div class="desc-input-wrapper">
+                        <label>비고 2</label>
+                        <textarea class="desc-textarea" id="deckDesc2" placeholder="추가 설명"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">초기화</button>
+                <button type="button" class="btn btn-primary" onclick="submitForm()">등록 신청</button>
             </div>
         </div>
     </div>
 </main>
 
 <script>
+    let searchTimeout = null;
+
+    // 자동완성 설정
+    const inputIds = [
+        'defenceMonsterA', 'defenceMonsterB', 'defenceMonsterC',
+        'attackMonsterA', 'attackMonsterB', 'attackMonsterC'
+    ];
+
+    inputIds.forEach(id => {
+        const input = document.getElementById(id);
+        // defenceMonsterA -> DefenceA, attackMonsterB -> AttackB
+        const suggestionId = 'suggestions' + id.replace('defenceMonster', 'Defence').replace('attackMonster', 'Attack');
+        const suggestions = document.getElementById(suggestionId);
+
+        input.addEventListener('input', (e) => {
+            const keyword = e.target.value.trim();
+            if (searchTimeout) clearTimeout(searchTimeout);
+
+            if (keyword.length < 1) {
+                suggestions.classList.remove('active');
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                searchMonsters(keyword, suggestions, input);
+            }, 300);
+        });
+
+        input.addEventListener('blur', () => {
+            setTimeout(() => {
+                suggestions.classList.remove('active');
+            }, 200);
+        });
+
+        input.addEventListener('focus', () => {
+            if (suggestions.innerHTML && input.value.trim().length >= 1) {
+                suggestions.classList.add('active');
+            }
+        });
+    });
+
+    async function searchMonsters(keyword, suggestionsEl, inputEl) {
+        try {
+            const response = await fetch(`/api/admin/monsters/search?keyword=${encodeURIComponent(keyword)}`, {
+                credentials: 'include'
+            });
+            const data = await response.json();
+
+            if (data.monsters && data.monsters.length > 0) {
+                suggestionsEl.innerHTML = data.monsters.map(m =>
+                    `<div class="suggestion-item" onclick="selectMonster('${m}', '${inputEl.id}')">${m}</div>`
+                ).join('');
+                suggestionsEl.classList.add('active');
+            } else {
+                suggestionsEl.classList.remove('active');
+            }
+        } catch (error) {
+            console.error('Failed to search monsters:', error);
+        }
+    }
+
+    function selectMonster(name, inputId) {
+        document.getElementById(inputId).value = name;
+        const suggestionId = 'suggestions' + inputId.replace('defenceMonster', 'Defence').replace('attackMonster', 'Attack');
+        document.getElementById(suggestionId).classList.remove('active');
+    }
+
+    function resetForm() {
+        inputIds.forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        document.getElementById('deckDesc1').value = '';
+        document.getElementById('deckDesc2').value = '';
+    }
+
+    async function submitForm() {
+        const defenceMonsterA = document.getElementById('defenceMonsterA').value.trim();
+        const defenceMonsterB = document.getElementById('defenceMonsterB').value.trim();
+        const defenceMonsterC = document.getElementById('defenceMonsterC').value.trim();
+        const attackMonsterA = document.getElementById('attackMonsterA').value.trim();
+        const attackMonsterB = document.getElementById('attackMonsterB').value.trim();
+        const attackMonsterC = document.getElementById('attackMonsterC').value.trim();
+        const deckDesc1 = document.getElementById('deckDesc1').value.trim();
+        const deckDesc2 = document.getElementById('deckDesc2').value.trim();
+
+        // 유효성 검사
+        if (!defenceMonsterA || !defenceMonsterB || !defenceMonsterC) {
+            alert('방덱 몬스터 A, B, C를 모두 입력해주세요.');
+            return;
+        }
+        if (!attackMonsterA || !attackMonsterB || !attackMonsterC) {
+            alert('공덱 몬스터 A, B, C를 모두 입력해주세요.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/admin/deck/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    defenceMonsterA,
+                    defenceMonsterB,
+                    defenceMonsterC,
+                    attackMonsterA,
+                    attackMonsterB,
+                    attackMonsterC,
+                    deckDesc1,
+                    deckDesc2
+                }),
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                resetForm();
+            } else {
+                alert(data.message || '등록에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Failed to register deck:', error);
+            alert('오류가 발생했습니다.');
+        }
+    }
 </script>
 </body>
 </html>

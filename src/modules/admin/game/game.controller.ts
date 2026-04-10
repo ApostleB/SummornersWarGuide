@@ -39,6 +39,59 @@ export class AdminGameController {
     private readonly gameService: GameModuleService,
   ) {}
 
+  // 몬스터 자동완성 검색
+  @Get("monsters/search")
+  async searchMonsters(@Query("keyword") keyword: string) {
+    const monsters = await this.adminGameService.searchMonsters(keyword);
+    return { success: true, monsters };
+  }
+
+  // 방덱 등록 신청
+  @Post("deck/register")
+  async registerDeck(@Body() data: any, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    const result = await this.adminGameService.registerDeck({
+      defenceMonsterA: data.defenceMonsterA,
+      defenceMonsterB: data.defenceMonsterB,
+      defenceMonsterC: data.defenceMonsterC,
+      attackMonsterA: data.attackMonsterA,
+      attackMonsterB: data.attackMonsterB,
+      attackMonsterC: data.attackMonsterC,
+      deckDesc1: data.deckDesc1,
+      deckDesc2: data.deckDesc2,
+      memberId: user.memberId,
+    });
+    return result;
+  }
+
+  // 승인 대기 방덱 목록
+  @Get("defence/pending")
+  async pendingDefenceList(@Query("keyword") keyword: string) {
+    const result = await this.adminGameService.getPendingDefenceList(keyword);
+    return result;
+  }
+
+  // 승인 대기 공덱 상세
+  @Get("defence/pending/:defenceId")
+  async pendingAttackList(@Param("defenceId") defenceId: string) {
+    const result = await this.adminGameService.getPendingAttackList(defenceId);
+    return result;
+  }
+
+  // 방덱 승인
+  @Put("defence/:defenceId/confirm")
+  async confirmDefence(@Param("defenceId") defenceId: string) {
+    await this.adminGameService.confirmDefence(defenceId);
+    return { success: true };
+  }
+
+  // 공덱 승인
+  @Put("attack/:attackId/confirm")
+  async confirmAttack(@Param("attackId") attackId: string) {
+    await this.adminGameService.confirmAttack(attackId);
+    return { success: true };
+  }
+
   @MinLevel("99")
   @Post("file/defence")
   @UseInterceptors(FileInterceptor("file", multerOptions))
@@ -55,10 +108,11 @@ export class AdminGameController {
     return { success: true, data };
   }
 
+  // 확정된 방덱 목록 (방덱 관리용)
   @Get("defence")
   async defenceList(@Query("keyword") keyword: string, @Res() res: Response) {
-    const defenceList = await this.gameService.getDefenceList(keyword);
-    return res.status(HttpStatus.OK).json(defenceList);
+    const result = await this.adminGameService.getConfirmedDefenceList(keyword);
+    return res.status(HttpStatus.OK).json(result);
   }
 
   @MinLevel("99")

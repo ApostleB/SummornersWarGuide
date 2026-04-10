@@ -67,6 +67,14 @@ export class Attack {
   @Column({ name: "UPDATE_DT", type: "datetime", nullable: true })
   updateDt: Date;
 
+  @Column({
+    name: "CONFIRM_YN",
+    type: "enum",
+    enum: ["Y", "N"],
+    default: "N",
+  })
+  confirmYn: "Y" | "N";
+
   @ManyToOne(() => Defence, (defence) => defence.attackList)
   @JoinColumn({ name: "DEFENCE_ID" })
   defence: Defence;
