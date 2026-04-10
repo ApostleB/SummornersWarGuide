@@ -426,6 +426,8 @@ export class AdminGameService {
             monsterC: attackData.monsterC,
             deckDesc1: attackData.deckDesc1,
             deckDesc2: attackData.deckDesc2,
+            inputId: memberId,
+            confirmYn: "Y",
           },
         });
 
@@ -442,6 +444,7 @@ export class AdminGameService {
             deckDesc2: attackData.deckDesc2,
             defence: defence,
             inputId: memberId,
+            confirmYn: "Y",
           });
           await this.attackRepository.save(newAttack);
           console.log(

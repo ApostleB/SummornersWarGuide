@@ -13,13 +13,15 @@ export class FileService {
       mimetype: file.mimetype,
       size: file.size,
       bufferLength: file.buffer?.length,
-      firstBytes: file.buffer?.slice(0, 4).toString('hex')
+      firstBytes: file.buffer?.slice(0, 4).toString("hex"),
     });
 
     // xlsx 파일은 ZIP 형식이므로 PK (50 4b)로 시작해야 함
-    const firstBytes = file.buffer.slice(0, 4).toString('hex');
-    if (!firstBytes.startsWith('504b')) {
-      throw new BadRequestException("유효한 xlsx 파일이 아닙니다. xlsx 파일을 업로드해주세요.");
+    const firstBytes = file.buffer.slice(0, 4).toString("hex");
+    if (!firstBytes.startsWith("504b")) {
+      throw new BadRequestException(
+        "유효한 xlsx 파일이 아닙니다. xlsx 파일을 업로드해주세요.",
+      );
     }
 
     const workbook = new ExcelJS.Workbook();
@@ -29,7 +31,7 @@ export class FileService {
     const worksheet = workbook.worksheets[0];
     const data: any[] = [];
 
-    let headers = [];
+    const headers = [];
 
     worksheet.eachRow((row, rowNumber) => {
       // 첫 번째 줄은 헤더로 간주

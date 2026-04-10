@@ -47,6 +47,7 @@ export class AdminViewController {
     return { user: req.user || null };
   }
 
+  @MinLevel("99")
   @Get("member")
   @Render("admin/member/member")
   adminMember(@Req() req: Request) {
