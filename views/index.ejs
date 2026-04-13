@@ -49,7 +49,7 @@
             <% if (content) { %>
                 <p class="main-text"><%= content %></p>
             <% } %>
-            <% if (images && images.length > 0) { %>
+            <% if (typeof images !== 'undefined' && images && images.length > 0) { %>
                 <div class="main-images">
                     <% images.forEach(function(img) { %>
                         <a href="/public/image/main/<%= img %>" target="_blank" rel="noopener">
