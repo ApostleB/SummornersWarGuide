@@ -37,6 +37,12 @@ export class GameController {
     return res.status(HttpStatus.OK).json(defence);
   }
 
+  @Get("board")
+  async getBoardList() {
+    const boardList = await this.gameService.getBoardList();
+    return { success: true, boardList };
+  }
+
   // 몬스터 자동완성 검색
   @Get("monsters/search")
   async searchMonsters(@Query("keyword") keyword: string) {
@@ -46,7 +52,16 @@ export class GameController {
 
   // 방덱 등록 신청
   @Post("deck/register")
-  async registerDeck(@Body() data: any, @Req() req: Request) {
+  async registerDeck(@Body() data: any, @Req() req: Request, @Res() res: Response) {
+    const requiredFields = [
+      'defenceMonsterA', 'defenceMonsterB', 'defenceMonsterC',
+      'attackMonsterA', 'attackMonsterB', 'attackMonsterC',
+    ];
+    const missing = requiredFields.filter(f => !data[f]?.trim());
+    if (missing.length > 0) {
+      return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: '방덱 A,B,C와 공덱 A,B,C는 모두 필수값입니다.' });
+    }
+
     const user = req.user as AuthUser;
     const result = await this.gameService.registerDeck({
       defenceMonsterA: data.defenceMonsterA,
@@ -59,6 +74,6 @@ export class GameController {
       deckDesc2: data.deckDesc2,
       memberId: user.memberId,
     });
-    return result;
+    return res.status(HttpStatus.OK).json(result);
   }
 }

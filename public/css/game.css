@@ -522,3 +522,35 @@
         white-space: nowrap;
     }
 }
+
+
+/* Board Accordion Styles */
+.board-title-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2d3748;
+    flex: 1;
+}
+.board-meta-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #edf2f7;
+}
+.board-author {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a5568;
+}
+.board-date {
+    font-size: 13px;
+    color: #a0aec0;
+}
+.board-content-text {
+    font-size: 14px;
+    color: #4a5568;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}

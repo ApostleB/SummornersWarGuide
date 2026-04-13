@@ -33,8 +33,19 @@
             </li>
 
             <% if (user?.level >= 50) { %>
-                <!-- 방덱관리 (아코디언) -->
+
+                <!-- 공지사항관리 (아코디언) -->
                 <li class="menu-item menu-accordion menu-bottom">
+                    <div class="menu-accordion-header" onclick="toggleMenuAccordion(this)">
+                        <span>공지사항관리</span>
+                        <span class="accordion-arrow">▼</span>
+                    </div>
+                    <ul class="menu-accordion-body">
+                        <li><a href="/admin/board" class="menu-sub-link">공지사항 관리</a></li>
+                    </ul>
+                </li>
+                <!-- 방덱관리 (아코디언) -->
+                <li class="menu-item menu-accordion">
                     <div class="menu-accordion-header" onclick="toggleMenuAccordion(this)">
                         <span>방덱관리</span>
                         <span class="accordion-arrow">▼</span>
@@ -53,10 +64,14 @@
                     </div>
                     <ul class="menu-accordion-body">
                         <li><a href="/admin/member/request" class="menu-sub-link">가입신청 관리</a></li>
-                        <li><a href="/admin/member" class="menu-sub-link">회원 관리</a></li>
+
+                        <% if (user.level === 99) { %>
+                            <li><a href="/admin/member" class="menu-sub-link">회원 관리</a></li>
+                        <% } %>
                     </ul>
                 </li>
 
+                <% if (user.level === 99) { %>
                 <!-- 코드 관리 (아코디언) -->
                 <li class="menu-item menu-accordion">
                     <div class="menu-accordion-header" onclick="toggleMenuAccordion(this)">
@@ -68,6 +83,7 @@
                         <li><a href="/admin/code" class="menu-sub-link">코드 관리</a></li>
                     </ul>
                 </li>
+                <% } %>
             <% } %>
         </ul>
 

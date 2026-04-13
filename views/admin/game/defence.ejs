@@ -55,6 +55,26 @@
 </div>
 
 <script>
+    let deckOrdCodes = [];
+
+    async function fetchDeckOrdCodes() {
+        try {
+            const response = await fetch('/api/admin/codes/dtl/DECK_ORD', { credentials: 'include' });
+            const data = await response.json();
+            deckOrdCodes = data.dtlCdList || [];
+        } catch (error) {
+            console.error('Failed to fetch DECK_ORD codes:', error);
+        }
+    }
+
+    function renderDeckOrdOptions(selectedValue) {
+        const emptyOption = `<option value="">-</option>`;
+        const options = deckOrdCodes.map(c =>
+            `<option value="${c.codeValue}" ${String(c.codeValue) === String(selectedValue) ? 'selected' : ''}>${c.codeTitle}</option>`
+        ).join('');
+        return emptyOption + options;
+    }
+
     // 검색 기능
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
@@ -251,9 +271,10 @@
                         </div>
                         <div class="attack-body-row">
                             <div class="attack-desc-list">
+                                ${attack.deckOrder ? `<div class="attack-desc-item"><strong>덱 순서:</strong> ${(() => { const c = deckOrdCodes.find(c => c.codeValue === attack.deckOrder); return c ? c.codeTitle : attack.deckOrder; })()}</div>` : ''}
                                 ${attack.deckDesc1 ? `<div class="attack-desc-item"><strong>비고1:</strong> ${attack.deckDesc1.replace(/\n/g, '<br>')}</div>` : ''}
                                 ${attack.deckDesc2 ? `<div class="attack-desc-item"><strong>비고2:</strong> ${attack.deckDesc2.replace(/\n/g, '<br>')}</div>` : ''}
-                                ${!attack.deckDesc1 && !attack.deckDesc2 ? '<div class="attack-desc-empty">설명 없음</div>' : ''}
+                                ${!attack.deckOrder && !attack.deckDesc1 && !attack.deckDesc2 ? '<div class="attack-desc-empty">설명 없음</div>' : ''}
                             </div>
                             <div class="attack-view-actions">
                                 <button class="action-btn edit-btn" onclick="enableAttackEdit('${attack.attackId}')">수정</button>
@@ -277,6 +298,12 @@
                         </div>
                         <div class="edit-desc-group">
                             <div class="edit-desc-row">
+                                <label class="edit-desc-label">덱 순서</label>
+                                <select class="edit-desc-select" id="edit-deckOrd-${attack.attackId}">
+                                    ${renderDeckOrdOptions(attack.deckOrder || '')}
+                                </select>
+                            </div>
+                            <div class="edit-desc-row">
                                 <label class="edit-desc-label">비고1</label>
                                 <textarea class="edit-desc-textarea" id="edit-desc1-${attack.attackId}">${attack.deckDesc1 || ''}</textarea>
                             </div>
@@ -298,17 +325,28 @@
     function enableAttackEdit(attackId) {
         document.getElementById(`attack-view-${attackId}`).style.display = 'none';
         document.getElementById(`attack-edit-${attackId}`).style.display = 'block';
+        updateAccordionHeight(attackId);
     }
 
     function disableAttackEdit(attackId) {
         document.getElementById(`attack-view-${attackId}`).style.display = 'block';
         document.getElementById(`attack-edit-${attackId}`).style.display = 'none';
+        updateAccordionHeight(attackId);
+    }
+
+    function updateAccordionHeight(attackId) {
+        const accordionBody = document.getElementById(`attack-item-${attackId}`)?.closest('.accordion-body');
+        if (accordionBody) {
+            accordionBody.style.maxHeight = 'none';
+            accordionBody.style.maxHeight = accordionBody.scrollHeight + 'px';
+        }
     }
 
     async function saveAttackEdit(attackId, defenceId) {
         const monsterA = document.getElementById(`edit-monA-${attackId}`).value.trim();
         const monsterB = document.getElementById(`edit-monB-${attackId}`).value.trim();
         const monsterC = document.getElementById(`edit-monC-${attackId}`).value.trim();
+        const deckOrder = document.getElementById(`edit-deckOrd-${attackId}`).value;
         const deckDesc1 = document.getElementById(`edit-desc1-${attackId}`).value.trim();
         const deckDesc2 = document.getElementById(`edit-desc2-${attackId}`).value.trim();
 
@@ -316,7 +354,7 @@
             const response = await fetch(`/api/admin/attack/${attackId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ monsterA, monsterB, monsterC, deckDesc1, deckDesc2 }),
+                body: JSON.stringify({ monsterA, monsterB, monsterC, deckOrder, deckDesc1, deckDesc2 }),
                 credentials: 'include'
             });
 
@@ -399,6 +437,7 @@
     }
 
     fetchDefenceList();
+    fetchDeckOrdCodes();
 
     // 롱프레스 팝업 기능
     let longPressTimer = null;

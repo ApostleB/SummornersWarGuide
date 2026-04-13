@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
+    <title>관리자 - 게시판 관리</title>
+    <link rel="stylesheet" href="/public/css/common/layout.css">
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/admin.css">
+    <link rel="stylesheet" href="/public/css/admin/code.css">
+</head>
+<body>
+<%- include('../../partials/header') %>
+
+<main class="main-content">
+    <div class="admin-container">
+        <div class="page-header">
+            <h1 class="page-title">게시판 관리</h1>
+            <p class="page-desc">공지사항 및 게시글을 관리합니다</p>
+        </div>
+
+        <div class="code-container">
+            <!-- 게시글 목록 -->
+            <div class="dtl-panel">
+                <div class="dtl-header">
+                    <div class="dtl-title">공지사항 목록</div>
+                    <button class="btn-primary" onclick="openAddForm()">+ 게시글 추가</button>
+                </div>
+
+                <div class="dtl-list" id="boardListContainer">
+                    <div class="empty-state">게시판 타입을 선택해주세요</div>
+                </div>
+
+                <!-- 게시글 추가/수정 폼 -->
+                <div class="edit-panel" id="editPanel" style="display:none;">
+                    <div class="edit-panel-title" id="editPanelTitle">게시글 추가</div>
+                    <input type="hidden" id="editBoardId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>제목 *</label>
+                            <input type="text" id="editBoardTitle" placeholder="게시글 제목">
+                        </div>
+                        <div class="form-group">
+                            <label>순서</label>
+                            <input type="number" id="editBoardOrder" placeholder="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>사용여부</label>
+                            <select id="editUseYn">
+                                <option value="Y">사용</option>
+                                <option value="N">미사용</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>내용 *</label>
+                            <textarea id="editBoardContent" placeholder="내용을 입력하세요" style="min-height: 120px;"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-secondary" onclick="closeEditPanel()">취소</button>
+                        <button class="btn-primary" onclick="saveBoard()">저장</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    const BOARD_TYPE = 'NOTICE';
+    let editMode = 'add';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchBoardList();
+    });
+
+    async function fetchBoardList() {
+        try {
+            const response = await fetch(`/api/admin/board/list/${BOARD_TYPE}`, { credentials: 'include' });
+            const data = await response.json();
+            renderBoardList(data.getBoardList);
+        } catch (error) {
+            console.error('Failed to fetch board list:', error);
+        }
+    }
+
+    function renderBoardList(boardList) {
+        const container = document.getElementById('boardListContainer');
+        if (!boardList || boardList.length === 0) {
+            container.innerHTML = '<div class="empty-state">등록된 게시글이 없습니다</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <table class="dtl-table">
+                <thead>
+                    <tr>
+                        <th style="width:50px;">순서</th>
+                        <th>제목</th>
+                        <th>내용</th>
+                        <th style="width:70px;">사용</th>
+                        <th style="width:80px;">등록일</th>
+                        <th style="width:90px;">관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${boardList.map(board => `
+                        <tr id="row-${board.boardId}" data-board='${JSON.stringify(board).replace(/'/g, "&#39;")}'>
+                            <td style="text-align:center;">${board.boardOrder ?? 0}</td>
+                            <td><strong>${board.boardTitle || '-'}</strong></td>
+                            <td class="code-value-cell">${(board.boardContent || '-').replace(/\n/g, '<br>')}</td>
+                            <td><span class="badge badge-${board.useYn.toLowerCase()}">${board.useYn === 'Y' ? '사용' : '미사용'}</span></td>
+                            <td style="font-size:11px;">${board.inputDt ? new Date(board.inputDt).toLocaleDateString('ko-KR') : '-'}</td>
+                            <td>
+                                <button class="btn-icon btn-edit" onclick="editBoard('${board.boardId}')">수정</button>
+                                <button class="btn-icon btn-delete" onclick="deleteBoard('${board.boardId}')">삭제</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    function openAddForm() {
+        editMode = 'add';
+        document.getElementById('editPanelTitle').textContent = '게시글 추가';
+        document.getElementById('editBoardId').value = '';
+        document.getElementById('editBoardTitle').value = '';
+        document.getElementById('editBoardContent').value = '';
+        document.getElementById('editBoardOrder').value = '0';
+        document.getElementById('editUseYn').value = 'Y';
+        document.getElementById('editPanel').style.display = 'block';
+    }
+
+    function editBoard(boardId) {
+        const row = document.getElementById(`row-${boardId}`);
+        const board = JSON.parse(row.dataset.board);
+
+        editMode = 'edit';
+        document.getElementById('editPanelTitle').textContent = '게시글 수정';
+        document.getElementById('editBoardId').value = board.boardId;
+        document.getElementById('editBoardTitle').value = board.boardTitle || '';
+        document.getElementById('editBoardContent').value = board.boardContent || '';
+        document.getElementById('editBoardOrder').value = board.boardOrder ?? 0;
+        document.getElementById('editUseYn').value = board.useYn;
+        document.getElementById('editPanel').style.display = 'block';
+
+        document.querySelectorAll('.dtl-table tr').forEach(tr => tr.classList.remove('selected'));
+        row.classList.add('selected');
+    }
+
+    function closeEditPanel() {
+        document.getElementById('editPanel').style.display = 'none';
+        document.querySelectorAll('.dtl-table tr').forEach(tr => tr.classList.remove('selected'));
+    }
+
+    async function saveBoard() {
+        const boardTitle = document.getElementById('editBoardTitle').value.trim();
+        const boardContent = document.getElementById('editBoardContent').value.trim();
+        const boardOrder = parseInt(document.getElementById('editBoardOrder').value) || 0;
+        const useYn = document.getElementById('editUseYn').value;
+
+        if (!boardTitle || !boardContent) {
+            alert('제목과 내용은 필수입니다.');
+            return;
+        }
+
+        const data = { boardType: BOARD_TYPE, boardTitle, boardContent, boardOrder, useYn };
+
+        try {
+            let response;
+            if (editMode === 'add') {
+                response = await fetch('/api/admin/board', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                    credentials: 'include'
+                });
+            } else {
+                const boardId = document.getElementById('editBoardId').value;
+                response = await fetch(`/api/admin/board/${boardId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                    credentials: 'include'
+                });
+            }
+
+            if (response.ok) {
+                alert(editMode === 'add' ? '게시글이 추가되었습니다.' : '게시글이 수정되었습니다.');
+                closeEditPanel();
+                fetchBoardList();
+            } else {
+                alert('저장에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Failed to save board:', error);
+            alert('오류가 발생했습니다.');
+        }
+    }
+
+    async function deleteBoard(boardId) {
+        if (!confirm('이 게시글을 삭제하시겠습니까?')) return;
+
+        try {
+            const response = await fetch(`/api/admin/board/${boardId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                alert('게시글이 삭제되었습니다.');
+                fetchBoardList();
+                closeEditPanel();
+            } else {
+                alert('삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Failed to delete board:', error);
+            alert('오류가 발생했습니다.');
+        }
+    }
+</script>
+</body>
+</html>

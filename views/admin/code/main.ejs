@@ -8,6 +8,130 @@
     <link rel="stylesheet" href="/public/css/common/layout.css">
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/admin.css">
+    <link rel="stylesheet" href="/public/css/admin/code.css">
+    <style>
+        .main-edit-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #edf2f7;
+            padding: 24px;
+        }
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        .main-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .main-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 8px;
+        }
+        .image-slot {
+            border: 2px dashed #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            background: #f7fafc;
+            position: relative;
+        }
+        .image-slot .slot-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #718096;
+        }
+        .image-slot .preview-wrap {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #edf2f7;
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-slot .preview-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .image-slot .no-image-text {
+            font-size: 12px;
+            color: #a0aec0;
+        }
+        .image-slot .slot-actions {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+        }
+        .image-slot .btn-upload-label {
+            flex: 1;
+            text-align: center;
+            background: #ebf4ff;
+            color: #3182ce;
+            padding: 6px 0;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .image-slot .btn-upload-label:hover { background: #bee3f8; }
+        .image-slot .btn-img-delete {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .image-slot .btn-img-delete:hover { background: #feb2b2; }
+        .image-slot input[type="file"] { display: none; }
+        .pending-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #667eea;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        .form-actions-main {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+        @media (max-width: 600px) {
+            .image-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
 <%- include('../../partials/header') %>
@@ -16,18 +140,157 @@
     <div class="admin-container">
         <div class="page-header">
             <h1 class="page-title">메인 관리</h1>
-            <p class="page-desc">메인 페이지 설정을 관리합니다</p>
+            <p class="page-desc">메인 페이지 노출 텍스트와 이미지를 관리합니다</p>
         </div>
 
-        <div class="content-card">
-            <div class="card-body">
-                <p class="empty-state">메인 관리 기능 준비 중입니다.</p>
-            </div>
+        <div class="main-edit-panel" id="mainEditPanel">
+            <div class="empty-state" style="height:120px;">불러오는 중...</div>
         </div>
     </div>
 </main>
 
 <script>
+    const IMAGE_BASE = '/public/image/main/';
+    let currentData = null;
+    // 삭제 예약 플래그 (저장 시 deleteImage1/2/3 전송)
+    const deleteFlags = { 1: false, 2: false, 3: false };
+
+    document.addEventListener('DOMContentLoaded', fetchMainContent);
+
+    async function fetchMainContent() {
+        try {
+            const res = await fetch('/api/admin/main', { credentials: 'include' });
+            const json = await res.json();
+            currentData = json.data;
+            renderPanel(currentData);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function renderPanel(data) {
+        const panel = document.getElementById('mainEditPanel');
+        panel.innerHTML = `
+            <div class="section-title" style="margin-bottom:20px;">메인 텍스트</div>
+            <textarea class="main-textarea" id="codeValueInput" placeholder="메인 페이지에 노출될 텍스트">${data?.codeValue || ''}</textarea>
+
+            <div class="section-title" style="margin-top:28px;">이미지 (최대 3개)</div>
+            <div class="image-grid">
+                ${[1, 2, 3].map(i => renderImageSlot(i, data?.[`codeAttr${i}`])).join('')}
+            </div>
+
+            <div class="form-actions-main">
+                <button class="btn-primary" onclick="saveMainContent()">저장</button>
+            </div>
+        `;
+
+        [1, 2, 3].forEach(i => {
+            document.getElementById(`fileInput${i}`).addEventListener('change', (e) => onFileChange(e, i));
+        });
+    }
+
+    function renderImageSlot(idx, attrValue) {
+        const hasImage = !!attrValue && !deleteFlags[idx];
+        const previewSrc = hasImage ? `${IMAGE_BASE}${attrValue}` : null;
+
+        return `
+            <div class="image-slot" id="slot-${idx}">
+                <div class="slot-label">이미지 ${idx}</div>
+                <div class="preview-wrap" id="preview-${idx}">
+                    ${previewSrc
+                        ? `<img src="${previewSrc}" alt="이미지 ${idx}" id="previewImg-${idx}">`
+                        : `<span class="no-image-text" id="noImageText-${idx}">이미지 없음</span>`}
+                </div>
+                <div class="slot-actions">
+                    <label class="btn-upload-label" for="fileInput${idx}">
+                        ${hasImage ? '교체' : '업로드'}
+                    </label>
+                    <input type="file" id="fileInput${idx}" accept="image/*">
+                    ${hasImage ? `<button class="btn-img-delete" onclick="markDelete(${idx})">삭제</button>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    function onFileChange(e, idx) {
+        const file = e.target.files[0];
+        if (!file) return;
+        deleteFlags[idx] = false;
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const wrap = document.getElementById(`preview-${idx}`);
+            wrap.innerHTML = `<img src="${ev.target.result}" alt="미리보기" id="previewImg-${idx}">`;
+
+            const slot = document.getElementById(`slot-${idx}`);
+            if (!slot.querySelector('.pending-badge')) {
+                const badge = document.createElement('span');
+                badge.className = 'pending-badge';
+                badge.textContent = '변경됨';
+                slot.appendChild(badge);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function markDelete(idx) {
+        if (!confirm(`이미지 ${idx}를 삭제하시겠습니까?`)) return;
+        deleteFlags[idx] = true;
+
+        const wrap = document.getElementById(`preview-${idx}`);
+        wrap.innerHTML = `<span class="no-image-text" id="noImageText-${idx}">이미지 없음</span>`;
+
+        const slot = document.getElementById(`slot-${idx}`);
+        const badge = slot.querySelector('.pending-badge');
+        if (badge) badge.remove();
+
+        // 삭제 버튼 제거, 업로드 버튼 텍스트 변경
+        const actions = slot.querySelector('.slot-actions');
+        const delBtn = actions.querySelector('.btn-img-delete');
+        if (delBtn) delBtn.remove();
+        const label = actions.querySelector('.btn-upload-label');
+        if (label) label.textContent = '업로드';
+
+        // 파일 입력 초기화
+        const fileInput = document.getElementById(`fileInput${idx}`);
+        fileInput.value = '';
+    }
+
+    async function saveMainContent() {
+        const codeValue = document.getElementById('codeValueInput').value;
+        const formData = new FormData();
+        formData.append('codeValue', codeValue);
+
+        [1, 2, 3].forEach(i => {
+            const fileInput = document.getElementById(`fileInput${i}`);
+            if (fileInput.files[0]) {
+                formData.append(`image${i}`, fileInput.files[0]);
+            }
+            if (deleteFlags[i]) {
+                formData.append(`deleteImage${i}`, 'true');
+            }
+        });
+
+        try {
+            const res = await fetch('/api/admin/main', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+            if (res.ok) {
+                alert('저장되었습니다.');
+                deleteFlags[1] = false;
+                deleteFlags[2] = false;
+                deleteFlags[3] = false;
+                fetchMainContent();
+            } else {
+                alert('저장에 실패했습니다.');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('오류가 발생했습니다.');
+        }
+    }
 </script>
 </body>
 </html>

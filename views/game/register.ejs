@@ -88,6 +88,14 @@
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
+        .monster-input.error {
+            border-color: #e53e3e;
+            box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
+        }
+        .required-mark {
+            color: #e53e3e;
+            margin-left: 2px;
+        }
         .suggestions {
             position: absolute;
             top: 100%;
@@ -209,17 +217,17 @@
                 </div>
                 <div class="monster-inputs">
                     <div class="monster-input-wrapper">
-                        <label>몬스터 A (리더)</label>
+                        <label>몬스터 A (리더)<span class="required-mark">*</span></label>
                         <input type="text" class="monster-input" id="defenceMonsterA" placeholder="몬스터 이름" autocomplete="off">
                         <div class="suggestions" id="suggestionsDefenceA"></div>
                     </div>
                     <div class="monster-input-wrapper">
-                        <label>몬스터 B</label>
+                        <label>몬스터 B<span class="required-mark">*</span></label>
                         <input type="text" class="monster-input" id="defenceMonsterB" placeholder="몬스터 이름" autocomplete="off">
                         <div class="suggestions" id="suggestionsDefenceB"></div>
                     </div>
                     <div class="monster-input-wrapper">
-                        <label>몬스터 C</label>
+                        <label>몬스터 C<span class="required-mark">*</span></label>
                         <input type="text" class="monster-input" id="defenceMonsterC" placeholder="몬스터 이름" autocomplete="off">
                         <div class="suggestions" id="suggestionsDefenceC"></div>
                     </div>
@@ -234,17 +242,17 @@
                 </div>
                 <div class="monster-inputs">
                     <div class="monster-input-wrapper">
-                        <label>몬스터 A (리더)</label>
+                        <label>몬스터 A (리더)<span class="required-mark">*</span></label>
                         <input type="text" class="monster-input" id="attackMonsterA" placeholder="몬스터 이름" autocomplete="off">
                         <div class="suggestions" id="suggestionsAttackA"></div>
                     </div>
                     <div class="monster-input-wrapper">
-                        <label>몬스터 B</label>
+                        <label>몬스터 B<span class="required-mark">*</span></label>
                         <input type="text" class="monster-input" id="attackMonsterB" placeholder="몬스터 이름" autocomplete="off">
                         <div class="suggestions" id="suggestionsAttackB"></div>
                     </div>
                     <div class="monster-input-wrapper">
-                        <label>몬스터 C</label>
+                        <label>몬스터 C<span class="required-mark">*</span></label>
                         <input type="text" class="monster-input" id="attackMonsterC" placeholder="몬스터 이름" autocomplete="off">
                         <div class="suggestions" id="suggestionsAttackC"></div>
                     </div>
@@ -344,13 +352,44 @@
 
     function resetForm() {
         inputIds.forEach(id => {
-            document.getElementById(id).value = '';
+            const el = document.getElementById(id);
+            el.value = '';
+            el.classList.remove('error');
         });
         document.getElementById('deckDesc1').value = '';
         document.getElementById('deckDesc2').value = '';
     }
 
+    function validateRequiredFields() {
+        const requiredIds = [
+            'defenceMonsterA', 'defenceMonsterB', 'defenceMonsterC',
+            'attackMonsterA', 'attackMonsterB', 'attackMonsterC'
+        ];
+        let hasError = false;
+        requiredIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el.value.trim()) {
+                el.classList.add('error');
+                hasError = true;
+            } else {
+                el.classList.remove('error');
+            }
+        });
+        return !hasError;
+    }
+
+    // 입력 시 에러 스타일 제거
+    inputIds.forEach(id => {
+        document.getElementById(id).addEventListener('input', function() {
+            if (this.value.trim()) this.classList.remove('error');
+        });
+    });
+
     async function submitForm() {
+        if (!validateRequiredFields()) {
+            return;
+        }
+
         const defenceMonsterA = document.getElementById('defenceMonsterA').value.trim();
         const defenceMonsterB = document.getElementById('defenceMonsterB').value.trim();
         const defenceMonsterC = document.getElementById('defenceMonsterC').value.trim();
@@ -359,16 +398,6 @@
         const attackMonsterC = document.getElementById('attackMonsterC').value.trim();
         const deckDesc1 = document.getElementById('deckDesc1').value.trim();
         const deckDesc2 = document.getElementById('deckDesc2').value.trim();
-
-        // 유효성 검사
-        if (!defenceMonsterA || !defenceMonsterB || !defenceMonsterC) {
-            alert('방덱 몬스터 A, B, C를 모두 입력해주세요.');
-            return;
-        }
-        if (!attackMonsterA || !attackMonsterB || !attackMonsterC) {
-            alert('공덱 몬스터 A, B, C를 모두 입력해주세요.');
-            return;
-        }
 
         try {
             const response = await fetch('/api/game/deck/register', {

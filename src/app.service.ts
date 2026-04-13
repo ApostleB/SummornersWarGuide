@@ -10,10 +10,15 @@ export class AppService {
     private dtlCdRepository: Repository<DtlCd>,
   ) {}
 
-  async getMainContent(): Promise<string> {
+  async getMainContent(): Promise<{ text: string; images: string[] }> {
     const contentCd = await this.dtlCdRepository.findOne({
       where: { code: "MCONT001" },
     });
-    return contentCd ? contentCd.codeValue : "";
+    const images = [contentCd?.codeAttr1, contentCd?.codeAttr2, contentCd?.codeAttr3]
+      .filter(Boolean);
+    return {
+      text: contentCd?.codeValue || "",
+      images,
+    };
   }
 }

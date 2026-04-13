@@ -41,12 +41,14 @@ export class AdminViewController {
   }
 
   // ========== 회원관리 ==========
+  //회원 가입신청 관리
   @Get("member/request")
   @Render("admin/member/request")
   adminMemberRequest(@Req() req: Request) {
     return { user: req.user || null };
   }
 
+  //회원 관리
   @MinLevel("99")
   @Get("member")
   @Render("admin/member/member")
@@ -54,13 +56,22 @@ export class AdminViewController {
     return { user: req.user || null };
   }
 
-  // ========== 코드 관리 ==========
+  //공지사항 관리
+  @Get("board")
+  @Render("admin/board/board")
+  adminBoardMain(@Req() req: Request) {
+    return { user: req.user || null };
+  }
+
+  // 메인관리
+  @MinLevel("99")
   @Get("code/main")
   @Render("admin/code/main")
   adminCodeMain(@Req() req: Request) {
     return { user: req.user || null };
   }
 
+  // ========== 코드 관리 ==========
   @MinLevel("99")
   @Get("code")
   @Render("admin/code/code")

@@ -31,6 +31,19 @@
                     <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
                 </div>
 
+                <div class="remember-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="saveId">
+                        <span class="checkmark"></span>
+                        아이디 저장
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="autoLogin">
+                        <span class="checkmark"></span>
+                        자동로그인
+                    </label>
+                </div>
+
                 <button type="submit" class="btn-auth">로그인</button>
             </form>
 
@@ -41,12 +54,57 @@
     </main>
 
     <script>
+        const saveIdCheckbox = document.getElementById('saveId');
+        const autoLoginCheckbox = document.getElementById('autoLogin');
+        const messageEl = document.getElementById('message');
+
+        // 자동로그인 체크 시 아이디 저장도 함께 체크
+        autoLoginCheckbox.addEventListener('change', () => {
+            if (autoLoginCheckbox.checked) {
+                saveIdCheckbox.checked = true;
+            }
+        });
+
+        // 아이디 저장 해제 시 자동로그인도 함께 해제
+        saveIdCheckbox.addEventListener('change', () => {
+            if (!saveIdCheckbox.checked) {
+                autoLoginCheckbox.checked = false;
+            }
+        });
+
+        // 페이지 로드 시 저장된 값 복원 및 자동로그인 시도
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedId = localStorage.getItem('savedId');
+            const autoLoginEnabled = localStorage.getItem('autoLogin') === 'true';
+
+            if (savedId) {
+                document.getElementById('name').value = savedId;
+                saveIdCheckbox.checked = true;
+            }
+
+            if (autoLoginEnabled) {
+                autoLoginCheckbox.checked = true;
+                fetch('/api/auth/refresh', { method: 'POST' })
+                    .then(res => {
+                        if (res.ok) {
+                            window.location.href = '/';
+                        } else {
+                            localStorage.removeItem('autoLogin');
+                            autoLoginCheckbox.checked = false;
+                        }
+                    })
+                    .catch(() => {
+                        localStorage.removeItem('autoLogin');
+                        autoLoginCheckbox.checked = false;
+                    });
+            }
+        });
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const name = document.getElementById('name').value;
             const password = document.getElementById('password').value;
-            const messageEl = document.getElementById('message');
 
             try {
                 const response = await fetch('/api/auth/login', {
@@ -60,14 +118,26 @@
                 const data = await response.json();
 
                 if (response.ok) {
+                    if (saveIdCheckbox.checked) {
+                        localStorage.setItem('savedId', name);
+                    } else {
+                        localStorage.removeItem('savedId');
+                    }
+
+                    if (autoLoginCheckbox.checked) {
+                        localStorage.setItem('autoLogin', 'true');
+                    } else {
+                        localStorage.removeItem('autoLogin');
+                    }
+
                     window.location.href = '/';
                 } else {
-                    message.textContent = data.message || '로그인에 실패했습니다.';
-                    message.className = 'message error show';
+                    messageEl.textContent = data.message || '로그인에 실패했습니다.';
+                    messageEl.className = 'message error show';
                 }
             } catch (error) {
-                message.textContent = '서버 오류가 발생했습니다.';
-                message.className = 'message error show';
+                messageEl.textContent = '서버 오류가 발생했습니다.';
+                messageEl.className = 'message error show';
             }
         });
     </script>

@@ -47,6 +47,9 @@ export class Attack {
   @Column({ name: "DECK_DESC2", type: "varchar", length: 1000, nullable: true })
   deckDesc2: string;
 
+  @Column({ name: "DECK_ORDER", type: "varchar", length: 50, nullable: true })
+  deckOrder: string;
+
   @Column({ name: "INPUT_ID", type: "uuid", nullable: true })
   inputId: string;
 

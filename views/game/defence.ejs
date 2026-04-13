@@ -122,11 +122,12 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const keyword = keywordOverride !== undefined ? keywordOverride : (urlParams.get('keyword') || '');
 
-                const apiUrl = keyword
-                    ? `/api/game/defence?keyword=${encodeURIComponent(keyword)}`
-                    : '/api/game/defence';
+                if (!keyword) {
+                    fetchBoardList();
+                    return;
+                }
 
-                const response = await fetch(apiUrl, {
+                const response = await fetch(`/api/game/defence?keyword=${encodeURIComponent(keyword)}`, {
                     method: 'GET',
                     credentials: 'include'
                 });
@@ -135,6 +136,59 @@
             } catch (error) {
                 console.error('Failed to fetch defence list:', error);
             }
+        }
+
+        async function fetchBoardList() {
+            try {
+                const response = await fetch('/api/game/board', { credentials: 'include' });
+                const data = await response.json();
+                renderBoardList(data.boardList);
+            } catch (error) {
+                console.error('Failed to fetch board list:', error);
+            }
+        }
+
+        function renderBoardList(boardList) {
+            const container = document.getElementById('defenceList');
+            if (!boardList || boardList.length === 0) {
+                container.innerHTML = '<div class="no-results">등록된 공지사항이 없습니다.</div>';
+                return;
+            }
+
+            container.innerHTML = boardList.map(board => `
+                <div class="defence-card" id="board-card-${board.boardId}" data-id="${board.boardId}" onclick="toggleBoardAccordion('${board.boardId}')">
+                    <div class="card-header">
+                        <div class="board-title-text">${board.boardTitle}</div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="accordion-body" id="board-body-${board.boardId}">
+                        <div class="accordion-inner" id="board-inner-${board.boardId}">
+                            <div class="board-meta-row">
+                                <span class="board-author">${board.inputMember ? board.inputMember.nickname || board.inputMember.name : '-'}</span>
+                                <span class="board-date">${board.inputDt ? new Date(board.inputDt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '-'}</span>
+                            </div>
+                            <div class="board-content-text">${(board.boardContent || '').replace(/\n/g, '<br>')}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleBoardAccordion(boardId) {
+            const card = document.getElementById(`board-card-${boardId}`);
+            const body = document.getElementById(`board-body-${boardId}`);
+            const isOpen = card.classList.contains('open');
+
+            document.querySelectorAll('.defence-card.open').forEach(c => {
+                c.classList.remove('open');
+                const b = document.getElementById(`board-body-${c.dataset.id}`);
+                if (b) b.style.maxHeight = null;
+            });
+
+            if (isOpen) return;
+
+            card.classList.add('open');
+            body.style.maxHeight = body.scrollHeight + 'px';
         }
 
         const sliderState = {};
@@ -223,7 +277,7 @@
                             </div>
                             <div class="header-right">
                                 <div class="pagination-info">${currentIndex + 1} / ${attackList.length}</div>
-                                <div class="pagination-info">${currentDeck.inputMember.name}</div>
+                                <div class="pagination-info">${currentDeck.inputMember.nickname}</div>
                                 <div class="attack-date">${currentDeck.inputDt ? new Date(currentDeck.inputDt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '-'}</div>
                             </div>
                         </div>
@@ -249,8 +303,8 @@
                             </div>
                         </div>
                         <div class="slider-nav-buttons">
-                            <button class="slider-nav-btn" onclick="changeSliderPage('${defenceId}', -1)" ${isFirst ? 'disabled' : ''}>이전</button>
-                            <button class="slider-nav-btn" onclick="changeSliderPage('${defenceId}', 1)" ${isLast ? 'disabled' : ''}>다음</button>
+                            <button class="slider-nav-btn" onclick="event.stopPropagation(); changeSliderPage('${defenceId}', -1)" ${isFirst ? 'disabled' : ''}>이전</button>
+                            <button class="slider-nav-btn" onclick="event.stopPropagation(); changeSliderPage('${defenceId}', 1)" ${isLast ? 'disabled' : ''}>다음</button>
                         </div>
                     </div>
                 </div>

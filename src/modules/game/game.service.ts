@@ -4,6 +4,7 @@ import { Repository } from "typeorm";
 import { Defence } from "./entities/defence.entity";
 import { Attack } from "./entities/attack.entity";
 import { DtlCd } from "../code/entities/dtl-cd.entity";
+import { Board, YesNo } from "../board/entities/board.entity";
 
 @Injectable()
 export class GameService {
@@ -14,6 +15,8 @@ export class GameService {
     private attackRepository: Repository<Attack>,
     @InjectRepository(DtlCd)
     private dtlCdRepository: Repository<DtlCd>,
+    @InjectRepository(Board)
+    private boardRepository: Repository<Board>,
   ) {}
 
   private mapMonsterInfo(name: string, typeInfo: DtlCd) {
@@ -219,6 +222,27 @@ export class GameService {
     return { success: true, message: "등록 신청이 완료되었습니다." };
   }
 
+  async getBoardList(): Promise<any[]> {
+    const boards = await this.boardRepository.find({
+      where: { boardType: "NOTICE", useYn: YesNo.Y },
+      relations: ["inputMember"],
+      order: { boardOrder: "ASC" },
+    });
+    return boards.map((board) => ({
+      boardId: board.boardId,
+      boardTitle: board.boardTitle,
+      boardContent: board.boardContent,
+      boardOrder: board.boardOrder,
+      inputDt: board.inputDt,
+      inputMember: board.inputMember
+        ? {
+            name: board.inputMember.memberName,
+            nickname: board.inputMember.memberNickname,
+          }
+        : null,
+    }));
+  }
+
   async getDefenceDetail(defenceId: string): Promise<any> {
     const defence = await this.defenceRepository
       .createQueryBuilder("defence")
@@ -229,6 +253,7 @@ export class GameService {
       .leftJoinAndSelect("attackList.inputMember", "inputMember")
       .leftJoinAndSelect("attackList.updateMember", "updateMember")
       .where("defence.defenceId = :defenceId", { defenceId })
+      .orderBy("attackList.deckOrder", "ASC")
       .addOrderBy("attackList.inputDt", "DESC")
       .getOne();
 
@@ -244,6 +269,7 @@ export class GameService {
         attackMonsterC: this.mapMonsterInfo(attack.monsterC, attack.monsterCType),
         deckDesc1: attack.deckDesc1,
         deckDesc2: attack.deckDesc2,
+        deckOrder: attack.deckOrder,
         inputDt: attack.inputDt,
         inputMember: attack.inputMember
           ? {

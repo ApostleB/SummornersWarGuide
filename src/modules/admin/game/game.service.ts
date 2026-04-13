@@ -225,6 +225,7 @@ export class AdminGameService {
         attackMonsterC: this.mapMonsterInfo(attack.monsterC, attack.monsterCType),
         deckDesc1: attack.deckDesc1,
         deckDesc2: attack.deckDesc2,
+        deckOrder: attack.deckOrder,
         inputDt: attack.inputDt,
         inputMember: attack.inputMember
           ? {
@@ -342,6 +343,9 @@ export class AdminGameService {
     }
     if (updateData.deckDesc2 !== undefined) {
       attack.deckDesc2 = updateData.deckDesc2;
+    }
+    if (updateData.deckOrder !== undefined) {
+      attack.deckOrder = updateData.deckOrder || null;
     }
 
     attack.updateId = memberId;

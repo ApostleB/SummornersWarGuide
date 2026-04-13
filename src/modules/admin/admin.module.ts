@@ -17,12 +17,21 @@ import { GrpCd } from "../code/entities/grp-cd.entity";
 import { Member } from "../auth/entities/member.entity";
 import { MemberLog } from "../auth/entities/member-log.entity";
 import { RolesGuard } from "../auth/guards/roles.guard";
+import {Board} from "../board/entities/board.entity";
 
 @Module({
   imports: [
     AuthModule,
     FileModule,
-    TypeOrmModule.forFeature([Defence, Attack, DtlCd, GrpCd, Member, MemberLog]),
+    TypeOrmModule.forFeature([
+      Defence,
+      Attack,
+      DtlCd,
+      GrpCd,
+      Member,
+      MemberLog,
+      Board,
+    ]),
   ],
   controllers: [
     AdminController,
