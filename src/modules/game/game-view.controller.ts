@@ -1,14 +1,18 @@
 import { Controller, Get, Render, Req, UseGuards } from "@nestjs/common";
 import { Request } from "express";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { GameService } from "./game.service";
 
 @UseGuards(JwtAuthGuard)
 @Controller("game")
 export class GameViewController {
+  constructor(private readonly gameService: GameService) {}
+
   @Get(["/", "defence"])
   @Render("game/defence")
-  defence(@Req() req: Request) {
-    return { user: req.user || null };
+  async defence(@Req() req: Request) {
+    const { defenceCount, attackCount } = await this.gameService.getStats();
+    return { user: req.user || null, defenceCount, attackCount };
   }
 
   @Get("register")

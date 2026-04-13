@@ -29,6 +29,12 @@ export class GameService {
     };
   }
 
+  async getStats(): Promise<{ defenceCount: number; attackCount: number }> {
+    const defenceCount = await this.defenceRepository.count({ where: { confirmYn: "Y" } });
+    const attackCount = await this.attackRepository.count({ where: { confirmYn: "Y" } });
+    return { defenceCount, attackCount };
+  }
+
   async getDefenceList(keyword: string): Promise<any> {
     const query = this.defenceRepository
       .createQueryBuilder("defence")
