@@ -6,6 +6,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { MinLevel } from "../auth/decorators/min-level.decorator";
 import { DtlCd } from "../code/entities/dtl-cd.entity";
+import { AdminMemberService } from "./member/member.service";
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller("admin")
@@ -13,6 +14,7 @@ export class AdminViewController {
   constructor(
     @InjectRepository(DtlCd)
     private dtlCdRepository: Repository<DtlCd>,
+    private readonly adminMemberService: AdminMemberService,
   ) {}
 
   @Get()
@@ -52,8 +54,9 @@ export class AdminViewController {
   @MinLevel("99")
   @Get("member")
   @Render("admin/member/member")
-  adminMember(@Req() req: Request) {
-    return { user: req.user || null };
+  async adminMember(@Req() req: Request) {
+    const { totalCount, monthlyLoginCount } = await this.adminMemberService.getMemberStats();
+    return { user: req.user || null, totalCount, monthlyLoginCount };
   }
 
   //공지사항 관리

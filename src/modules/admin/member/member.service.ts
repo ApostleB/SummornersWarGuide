@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, In, Not } from "typeorm";
 import { Member, MemberStatus } from "../../auth/entities/member.entity";
-import { MemberLog } from "../../auth/entities/member-log.entity";
+import { MemberLog, LogType } from "../../auth/entities/member-log.entity";
 import { DtlCd, YesNo } from "../../code/entities/dtl-cd.entity";
 import * as bcrypt from "bcrypt";
 
@@ -91,6 +91,28 @@ export class AdminMemberService {
       codeTitle: c.codeTitle,
       codeValue: c.codeValue,
     }));
+  }
+
+  async getMemberStats(): Promise<{ totalCount: number; monthlyLoginCount: number }> {
+    const totalCount = await this.memberRepository.count({
+      where: {
+        status: Not(In([MemberStatus.WAIT, MemberStatus.REJECT, MemberStatus.FAIL])),
+      },
+    });
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    const monthlyLoginCount = await this.memberLogRepository
+      .createQueryBuilder("log")
+      .where("log.logType = :logType", { logType: LogType.LOGIN })
+      .andWhere("log.logContent = :logContent", { logContent: "SUCCESS" })
+      .andWhere("log.inputDt >= :startOfMonth", { startOfMonth })
+      .andWhere("log.inputDt < :startOfNextMonth", { startOfNextMonth })
+      .getCount();
+
+    return { totalCount, monthlyLoginCount };
   }
 
   async updateMemberLevel(memberId: string, code: string): Promise<void> {
