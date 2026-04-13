@@ -67,11 +67,13 @@
         }
     }
 
-    function renderDeckOrdOptions(selectedValue) {
+    function renderDeckOrdOptions(selectedValue, usedValues = []) {
         const emptyOption = `<option value="">-</option>`;
-        const options = deckOrdCodes.map(c =>
-            `<option value="${c.codeValue}" ${String(c.codeValue) === String(selectedValue) ? 'selected' : ''}>${c.codeTitle}</option>`
-        ).join('');
+        const options = deckOrdCodes.map(c => {
+            const isSelected = String(c.codeValue) === String(selectedValue);
+            const isDisabled = !isSelected && usedValues.includes(String(c.codeValue));
+            return `<option value="${c.codeValue}" ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}>${c.codeTitle}${isDisabled ? ' (사용중)' : ''}</option>`;
+        }).join('');
         return emptyOption + options;
     }
 
@@ -242,7 +244,11 @@
             return;
         }
 
-        container.innerHTML = attackList.map((attack, index) => `
+        container.innerHTML = attackList.map((attack, index) => {
+            const usedOrders = attackList
+                .filter(a => a.attackId !== attack.attackId && a.deckOrder != null && a.deckOrder !== '')
+                .map(a => String(a.deckOrder));
+            return `
             <div class="attack-item-admin" id="attack-item-${attack.attackId}">
                 <div class="attack-view-mode" id="attack-view-${attack.attackId}">
                     <div class="attack-view-wrapper">
@@ -300,7 +306,7 @@
                             <div class="edit-desc-row">
                                 <label class="edit-desc-label">덱 순서</label>
                                 <select class="edit-desc-select" id="edit-deckOrd-${attack.attackId}">
-                                    ${renderDeckOrdOptions(attack.deckOrder || '')}
+                                    ${renderDeckOrdOptions(attack.deckOrder ?? '', usedOrders)}
                                 </select>
                             </div>
                             <div class="edit-desc-row">
@@ -319,7 +325,7 @@
                     </div>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
     }
 
     function enableAttackEdit(attackId) {

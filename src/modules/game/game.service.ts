@@ -253,7 +253,7 @@ export class GameService {
       .leftJoinAndSelect("attackList.inputMember", "inputMember")
       .leftJoinAndSelect("attackList.updateMember", "updateMember")
       .where("defence.defenceId = :defenceId", { defenceId })
-      .orderBy("attackList.deckOrder", "ASC")
+      .orderBy("CAST(COALESCE(attackList.deckOrder, '0') AS UNSIGNED)", "ASC")
       .addOrderBy("attackList.inputDt", "DESC")
       .getOne();
 

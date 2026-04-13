@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, ConflictException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, Like } from "typeorm";
 import { Defence } from "../../game/entities/defence.entity";
@@ -345,7 +345,16 @@ export class AdminGameService {
       attack.deckDesc2 = updateData.deckDesc2;
     }
     if (updateData.deckOrder !== undefined) {
-      attack.deckOrder = updateData.deckOrder || null;
+      const newOrder = updateData.deckOrder || null;
+      if (newOrder) {
+        const duplicate = await this.attackRepository.findOne({
+          where: { defenceId: attack.defenceId, deckOrder: newOrder, confirmYn: "Y" },
+        });
+        if (duplicate && duplicate.attackId !== attackId) {
+          throw new ConflictException("이미 사용 중인 덱 순서입니다.");
+        }
+      }
+      attack.deckOrder = newOrder;
     }
 
     attack.updateId = memberId;
