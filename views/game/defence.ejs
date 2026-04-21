@@ -303,7 +303,7 @@
                                 <span class="board-author">${board.inputMember ? board.inputMember.nickname || board.inputMember.name : '-'}</span>
                                 <span class="board-date">${board.inputDt ? new Date(board.inputDt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '-'}</span>
                             </div>
-                            <div class="board-content-text">${(board.boardContent || '').replace(/\n/g, '<br>')}</div>
+                            <div class="board-content-text">${(board.boardContent || '').trim().replace(/\n/g, '<br>')}</div>
                             ${imagesHtml}
                         </div>
                     </div>
