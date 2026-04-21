@@ -250,7 +250,7 @@ export class GameService {
 
   async getBoardList(): Promise<any[]> {
     const boards = await this.boardRepository.find({
-      where: { boardType: "NOTICE", useYn: YesNo.Y },
+      where: { boardType: "NOTICE", useYn: YesNo.Y, delYn: YesNo.N },
       relations: ["inputMember", "boardFileList"],
       order: { boardOrder: "ASC" },
     });

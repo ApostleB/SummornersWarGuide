@@ -36,6 +36,9 @@ export class Board {
   @Column({ name: "USE_YN", type: "enum", enum: YesNo, default: YesNo.Y })
   useYn: YesNo;
 
+  @Column({ name: "DEL_YN", type: "enum", enum: YesNo, default: YesNo.N })
+  delYn: YesNo;
+
   @Column({ name: "INPUT_ID", type: "uuid", nullable: true })
   inputId: string;
 

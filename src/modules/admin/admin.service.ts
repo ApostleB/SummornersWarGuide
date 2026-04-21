@@ -38,7 +38,7 @@ export class AdminService {
 
   async getBoardList(boardType: string): Promise<Board[]> {
     return this.boardRepository.find({
-      where: { boardType },
+      where: { boardType, delYn: YesNo.N },
       relations: ["boardFileList"],
       order: { boardOrder: "ASC" },
     });
