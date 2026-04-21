@@ -2,11 +2,13 @@ import {
   Entity,
   Column,
   ManyToOne,
+  OneToMany,
   JoinColumn,
   CreateDateColumn,
   PrimaryColumn, BeforeInsert,
 } from "typeorm";
 import { Member } from "../../auth/entities/member.entity";
+import { BoardFile } from "./board-file.entity";
 import { v4 as uuidv4 } from "uuid";
 
 export enum YesNo {
@@ -53,6 +55,9 @@ export class Board {
 
   @Column({ name: "UPDATE_DT", type: "datetime", nullable: true })
   updateDt: Date;
+
+  @OneToMany(() => BoardFile, (boardFile) => boardFile.board)
+  boardFileList: BoardFile[];
 
   @BeforeInsert()
   generateId() {

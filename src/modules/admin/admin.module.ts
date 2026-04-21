@@ -12,12 +12,14 @@ import { FileModule } from "../../common/file/file.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Defence } from "../game/entities/defence.entity";
 import { Attack } from "../game/entities/attack.entity";
+import { DeckLog } from "../game/entities/deck-log.entity";
 import { DtlCd } from "../code/entities/dtl-cd.entity";
 import { GrpCd } from "../code/entities/grp-cd.entity";
 import { Member } from "../auth/entities/member.entity";
 import { MemberLog } from "../auth/entities/member-log.entity";
 import { RolesGuard } from "../auth/guards/roles.guard";
-import {Board} from "../board/entities/board.entity";
+import { Board } from "../board/entities/board.entity";
+import { BoardFile } from "../board/entities/board-file.entity";
 
 @Module({
   imports: [
@@ -26,11 +28,13 @@ import {Board} from "../board/entities/board.entity";
     TypeOrmModule.forFeature([
       Defence,
       Attack,
+      DeckLog,
       DtlCd,
       GrpCd,
       Member,
       MemberLog,
       Board,
+      BoardFile,
     ]),
   ],
   controllers: [

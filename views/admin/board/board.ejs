@@ -9,6 +9,80 @@
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/admin.css">
     <link rel="stylesheet" href="/public/css/admin/code.css">
+    <style>
+        .board-images-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .board-image-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+        .board-image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .board-image-item .btn-remove-img {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #e53e3e;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            line-height: 20px;
+            text-align: center;
+            padding: 0;
+        }
+        .board-images-thumb {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .board-images-thumb img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .drop-zone {
+            border: 2px dashed #aaa;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #888;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: border-color 0.2s, background 0.2s;
+            user-select: none;
+        }
+        .drop-zone.drag-over {
+            border-color: #4a7cf4;
+            background: rgba(74,124,244,0.05);
+            color: #4a7cf4;
+        }
+        .drop-zone .drop-hint {
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        .image-count-badge {
+            font-size: 12px;
+            color: #888;
+            margin-left: 6px;
+        }
+    </style>
 </head>
 <body>
 <%- include('../../partials/header') %>
@@ -56,6 +130,17 @@
                             <label>내용 *</label>
                             <textarea id="editBoardContent" placeholder="내용을 입력하세요" style="min-height: 120px;"></textarea>
                         </div>
+                        <div class="form-group full-width">
+                            <label>이미지 <span id="imageCountBadge" class="image-count-badge">(0 / 5)</span></label>
+                            <!-- 이미지 미리보기 (기존 + 신규 통합) -->
+                            <div id="allImagesPreview" class="board-images-preview"></div>
+                            <!-- 드래그&드랍 / 파일 선택 영역 -->
+                            <div class="drop-zone" id="dropZone">
+                                <div>🖼 이미지를 드래그하거나 클릭하여 추가</div>
+                                <div class="drop-hint">PNG, JPG, GIF · 최대 5개</div>
+                            </div>
+                            <input type="file" id="boardImageInput" accept="image/*" multiple style="display:none;">
+                        </div>
                     </div>
                     <div class="form-actions">
                         <button class="btn-secondary" onclick="closeEditPanel()">취소</button>
@@ -69,11 +154,92 @@
 
 <script>
     const BOARD_TYPE = 'NOTICE';
+    const MAX_IMAGES = 5;
     let editMode = 'add';
+    let pendingDeleteFileIds = [];
+    let newImageFiles = [];       // 새로 추가할 File 객체 배열
+    let existingFileItems = [];   // { fileId, filePath } 형태의 기존 파일 배열
 
     document.addEventListener('DOMContentLoaded', () => {
         fetchBoardList();
+        initDropZone();
     });
+
+    function initDropZone() {
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('boardImageInput');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            addImageFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            addImageFiles(Array.from(e.target.files));
+            e.target.value = '';
+        });
+    }
+
+    function addImageFiles(files) {
+        const totalAfter = existingFileItems.length + newImageFiles.length + files.length;
+        if (totalAfter > MAX_IMAGES) {
+            const canAdd = MAX_IMAGES - existingFileItems.length - newImageFiles.length;
+            alert(`이미지는 최대 ${MAX_IMAGES}개까지 업로드할 수 있습니다. (${canAdd}개 더 추가 가능)`);
+            files = files.slice(0, canAdd);
+            if (files.length === 0) return;
+        }
+        newImageFiles = newImageFiles.concat(files);
+        renderAllImages();
+    }
+
+    function renderAllImages() {
+        const container = document.getElementById('allImagesPreview');
+        const existingHtml = existingFileItems.map(f => `
+            <div class="board-image-item" id="existing-img-${f.fileId}">
+                <img src="/public/image/board/${f.filePath}" alt="이미지">
+                <button class="btn-remove-img" onclick="removeExistingImage('${f.fileId}')">×</button>
+            </div>`).join('');
+        const newHtml = newImageFiles.map((file, idx) => {
+            const url = URL.createObjectURL(file);
+            return `
+            <div class="board-image-item" id="new-img-${idx}">
+                <img src="${url}" alt="새 이미지">
+                <button class="btn-remove-img" onclick="removeNewImage(${idx})">×</button>
+            </div>`;
+        }).join('');
+        container.innerHTML = existingHtml + newHtml;
+        updateImageCount();
+    }
+
+    function updateImageCount() {
+        const total = existingFileItems.length + newImageFiles.length;
+        const badge = document.getElementById('imageCountBadge');
+        badge.textContent = `(${total} / ${MAX_IMAGES})`;
+        badge.style.color = total >= MAX_IMAGES ? '#e53e3e' : '#888';
+
+        const dropZone = document.getElementById('dropZone');
+        dropZone.style.opacity = total >= MAX_IMAGES ? '0.4' : '1';
+        dropZone.style.pointerEvents = total >= MAX_IMAGES ? 'none' : 'auto';
+    }
+
+    function removeExistingImage(fileId) {
+        pendingDeleteFileIds.push(fileId);
+        existingFileItems = existingFileItems.filter(f => f.fileId !== fileId);
+        renderAllImages();
+    }
+
+    function removeNewImage(idx) {
+        newImageFiles.splice(idx, 1);
+        renderAllImages();
+    }
 
     async function fetchBoardList() {
         try {
@@ -99,32 +265,50 @@
                         <th style="width:50px;">순서</th>
                         <th>제목</th>
                         <th>내용</th>
+                        <th style="width:70px;">이미지</th>
                         <th style="width:70px;">사용</th>
                         <th style="width:80px;">등록일</th>
                         <th style="width:90px;">관리</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${boardList.map(board => `
+                    ${boardList.map(board => {
+                        const activeFiles = (board.boardFileList || []).filter(f => f.delYn !== 'Y');
+                        const thumbsHtml = activeFiles.slice(0, 3).map(f =>
+                            `<img src="/public/image/board/${f.filePath}" alt="이미지">`
+                        ).join('');
+                        return `
                         <tr id="row-${board.boardId}" data-board='${JSON.stringify(board).replace(/'/g, "&#39;")}'>
                             <td style="text-align:center;">${board.boardOrder ?? 0}</td>
                             <td><strong>${board.boardTitle || '-'}</strong></td>
                             <td class="code-value-cell">${(board.boardContent || '-').replace(/\n/g, '<br>')}</td>
+                            <td>
+                                <div class="board-images-thumb">${thumbsHtml || '-'}</div>
+                            </td>
                             <td><span class="badge badge-${board.useYn.toLowerCase()}">${board.useYn === 'Y' ? '사용' : '미사용'}</span></td>
                             <td style="font-size:11px;">${board.inputDt ? new Date(board.inputDt).toLocaleDateString('ko-KR') : '-'}</td>
                             <td>
                                 <button class="btn-icon btn-edit" onclick="editBoard('${board.boardId}')">수정</button>
                                 <button class="btn-icon btn-delete" onclick="deleteBoard('${board.boardId}')">삭제</button>
                             </td>
-                        </tr>
-                    `).join('')}
+                        </tr>`;
+                    }).join('')}
                 </tbody>
             </table>
         `;
     }
 
+    function resetImageState() {
+        pendingDeleteFileIds = [];
+        newImageFiles = [];
+        existingFileItems = [];
+        document.getElementById('allImagesPreview').innerHTML = '';
+        updateImageCount();
+    }
+
     function openAddForm() {
         editMode = 'add';
+        resetImageState();
         document.getElementById('editPanelTitle').textContent = '게시글 추가';
         document.getElementById('editBoardId').value = '';
         document.getElementById('editBoardTitle').value = '';
@@ -132,6 +316,7 @@
         document.getElementById('editBoardOrder').value = '0';
         document.getElementById('editUseYn').value = 'Y';
         document.getElementById('editPanel').style.display = 'block';
+        document.getElementById('editPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function editBoard(boardId) {
@@ -139,16 +324,23 @@
         const board = JSON.parse(row.dataset.board);
 
         editMode = 'edit';
+        resetImageState();
         document.getElementById('editPanelTitle').textContent = '게시글 수정';
         document.getElementById('editBoardId').value = board.boardId;
         document.getElementById('editBoardTitle').value = board.boardTitle || '';
         document.getElementById('editBoardContent').value = board.boardContent || '';
         document.getElementById('editBoardOrder').value = board.boardOrder ?? 0;
         document.getElementById('editUseYn').value = board.useYn;
-        document.getElementById('editPanel').style.display = 'block';
+
+        existingFileItems = (board.boardFileList || [])
+            .filter(f => f.delYn !== 'Y')
+            .map(f => ({ fileId: f.fileId, filePath: f.filePath }));
+        renderAllImages();
 
         document.querySelectorAll('.dtl-table tr').forEach(tr => tr.classList.remove('selected'));
         row.classList.add('selected');
+        document.getElementById('editPanel').style.display = 'block';
+        document.getElementById('editPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function closeEditPanel() {
@@ -167,23 +359,32 @@
             return;
         }
 
-        const data = { boardType: BOARD_TYPE, boardTitle, boardContent, boardOrder, useYn };
+        const formData = new FormData();
+        formData.append('boardType', BOARD_TYPE);
+        formData.append('boardTitle', boardTitle);
+        formData.append('boardContent', boardContent);
+        formData.append('boardOrder', boardOrder);
+        formData.append('useYn', useYn);
+
+        // 삭제할 파일 ID
+        pendingDeleteFileIds.forEach(id => formData.append('deleteFileIds', id));
+
+        // 새 이미지 파일
+        newImageFiles.forEach(file => formData.append('boardImages', file));
 
         try {
             let response;
             if (editMode === 'add') {
                 response = await fetch('/api/admin/board', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data),
+                    body: formData,
                     credentials: 'include'
                 });
             } else {
                 const boardId = document.getElementById('editBoardId').value;
                 response = await fetch(`/api/admin/board/${boardId}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data),
+                    body: formData,
                     credentials: 'include'
                 });
             }

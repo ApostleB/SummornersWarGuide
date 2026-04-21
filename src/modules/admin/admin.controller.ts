@@ -136,20 +136,120 @@ export class AdminController {
   }
 
   @Post("board")
-  async createBoard(@Body() data: any, @Req() req: Request) {
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [{ name: "boardImages", maxCount: 5 }],
+      {
+        storage: diskStorage({
+          destination: (req, file, cb) => {
+            const uploadDir = join(process.cwd(), "public/image/board");
+            fs.mkdirSync(uploadDir, { recursive: true });
+            cb(null, uploadDir);
+          },
+          filename: (req, file, cb) => {
+            cb(null, `board_${Date.now()}_${Math.random().toString(36).slice(2)}${extname(file.originalname)}`);
+          },
+        }),
+      },
+    ),
+  )
+  async createBoard(
+    @Body() data: any,
+    @UploadedFiles() files: { boardImages?: Express.Multer.File[] },
+    @Req() req: Request,
+  ) {
     const user = req.user as AuthUser;
     const board = await this.adminService.createBoard({ ...data, inputId: user.memberId });
+
+    const uploadedFiles = files?.boardImages || [];
+    if (uploadedFiles.length > 5) {
+      throw new BadRequestException("이미지는 최대 5개까지 업로드할 수 있습니다.");
+    }
+    for (let i = 0; i < uploadedFiles.length; i++) {
+      await this.adminService.createBoardFile({
+        boardId: board.boardId,
+        filePath: uploadedFiles[i].filename,
+        fileExt: extname(uploadedFiles[i].originalname).replace(".", ""),
+        fileOrd: i,
+        inputId: user.memberId,
+      });
+    }
+
     return { success: true, board };
   }
 
   @Put("board/:boardId")
-  async updateBoard(@Param("boardId") boardId: string, @Body() data: any) {
-    await this.adminService.updateBoard(boardId, data);
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [{ name: "boardImages", maxCount: 5 }],
+      {
+        storage: diskStorage({
+          destination: (req, file, cb) => {
+            const uploadDir = join(process.cwd(), "public/image/board");
+            fs.mkdirSync(uploadDir, { recursive: true });
+            cb(null, uploadDir);
+          },
+          filename: (req, file, cb) => {
+            cb(null, `board_${Date.now()}_${Math.random().toString(36).slice(2)}${extname(file.originalname)}`);
+          },
+        }),
+      },
+    ),
+  )
+  async updateBoard(
+    @Param("boardId") boardId: string,
+    @Body() data: any,
+    @UploadedFiles() files: { boardImages?: Express.Multer.File[] },
+    @Req() req: Request,
+  ) {
+    const user = req.user as AuthUser;
+    const { deleteFileIds, ...boardData } = data;
+
+    await this.adminService.updateBoard(boardId, boardData);
+
+    // 개별 파일 삭제 처리
+    if (deleteFileIds) {
+      const ids: string[] = Array.isArray(deleteFileIds) ? deleteFileIds : [deleteFileIds];
+      for (const fileId of ids) {
+        const boardFiles = await this.adminService.getBoardFiles(boardId);
+        const target = boardFiles.find((f) => f.fileId === fileId);
+        if (target) {
+          const filePath = join(process.cwd(), "public/image/board", target.filePath);
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+          await this.adminService.softDeleteBoardFile(fileId);
+        }
+      }
+    }
+
+    // 새 파일 추가
+    const uploadedFiles = files?.boardImages || [];
+    const existingFiles = await this.adminService.getBoardFiles(boardId);
+    if (existingFiles.length + uploadedFiles.length > 5) {
+      throw new BadRequestException("이미지는 최대 5개까지 업로드할 수 있습니다.");
+    }
+    const nextOrd = existingFiles.length;
+    for (let i = 0; i < uploadedFiles.length; i++) {
+      await this.adminService.createBoardFile({
+        boardId,
+        filePath: uploadedFiles[i].filename,
+        fileExt: extname(uploadedFiles[i].originalname).replace(".", ""),
+        fileOrd: nextOrd + i,
+        inputId: user.memberId,
+      });
+    }
+
     return { success: true };
   }
 
   @Delete("board/:boardId")
   async deleteBoard(@Param("boardId") boardId: string) {
+    // 연결된 파일들 soft delete + 물리 파일 삭제
+    const boardFiles = await this.adminService.getBoardFiles(boardId);
+    for (const file of boardFiles) {
+      const filePath = join(process.cwd(), "public/image/board", file.filePath);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
+    await this.adminService.softDeleteBoardFilesByBoardId(boardId);
     await this.adminService.deleteBoard(boardId);
     return { success: true };
   }

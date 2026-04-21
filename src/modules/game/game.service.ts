@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Defence } from "./entities/defence.entity";
 import { Attack } from "./entities/attack.entity";
+import { DeckLog } from "./entities/deck-log.entity";
 import { DtlCd } from "../code/entities/dtl-cd.entity";
 import { Board, YesNo } from "../board/entities/board.entity";
 
@@ -13,6 +14,8 @@ export class GameService {
     private defenceRepository: Repository<Defence>,
     @InjectRepository(Attack)
     private attackRepository: Repository<Attack>,
+    @InjectRepository(DeckLog)
+    private deckLogRepository: Repository<DeckLog>,
     @InjectRepository(DtlCd)
     private dtlCdRepository: Repository<DtlCd>,
     @InjectRepository(Board)
@@ -35,13 +38,30 @@ export class GameService {
     return { defenceCount, attackCount };
   }
 
-  async getDefenceList(keyword: string): Promise<any> {
+  async getDefenceList(keyword: string, memberId?: string): Promise<any> {
+    if (memberId) {
+      const log = this.deckLogRepository.create({
+        logType: "SEARCH",
+        logAction: "SEARCH",
+        attackDeckId: null,
+        defenceDeckId: null,
+        logContent: keyword,
+        inputId: memberId,
+      });
+      await this.deckLogRepository.save(log);
+    }
+
     const query = this.defenceRepository
       .createQueryBuilder("defence")
       .leftJoinAndSelect("defence.monsterAType", "mAType")
       .leftJoinAndSelect("defence.monsterBType", "mBType")
       .leftJoinAndSelect("defence.monsterCType", "mCType")
-      .leftJoin("defence.attackList", "attack", "attack.confirmYn = :confirmYn", { confirmYn: "Y" })
+      .leftJoin(
+        "defence.attackList",
+        "attack",
+        "attack.confirmYn = :confirmYn",
+        { confirmYn: "Y" },
+      )
       .addSelect("COUNT(attack.attackId)", "attackCount")
       .addSelect("MAX(attack.inputDt)", "lastAttackDate")
       .where("defence.confirmYn = :defenceConfirm", { defenceConfirm: "Y" })
@@ -95,7 +115,7 @@ export class GameService {
   }
 
   // 몬스터 자동완성 검색
-  async searchMonsters(keyword: string): Promise<string[]> {
+  async searchMonsters(keyword: string, memberId?: string): Promise<string[]> {
     if (!keyword || keyword.length < 1) return [];
 
     const defenceA = await this.defenceRepository
@@ -231,7 +251,7 @@ export class GameService {
   async getBoardList(): Promise<any[]> {
     const boards = await this.boardRepository.find({
       where: { boardType: "NOTICE", useYn: YesNo.Y },
-      relations: ["inputMember"],
+      relations: ["inputMember", "boardFileList"],
       order: { boardOrder: "ASC" },
     });
     return boards.map((board) => ({
@@ -246,6 +266,10 @@ export class GameService {
             nickname: board.inputMember.memberNickname,
           }
         : null,
+      boardFileList: (board.boardFileList || [])
+        .filter((f) => f.delYn === "N")
+        .sort((a, b) => a.fileOrd - b.fileOrd)
+        .map((f) => ({ fileId: f.fileId, filePath: f.filePath, fileOrd: f.fileOrd })),
     }));
   }
 
@@ -292,5 +316,22 @@ export class GameService {
           : null,
       })),
     };
+  }
+
+  async getBestKeywords(): Promise<{ keyword: string; count: number }[]> {
+    const result = await this.deckLogRepository
+      .createQueryBuilder("log")
+      .select("log.logContent", "keyword")
+      .addSelect("COUNT(log.logContent)", "count")
+      .where("log.logType = :logType", { logType: "SEARCH" })
+      .andWhere("log.logAction = :logAction", { logAction: "SEARCH" })
+      .andWhere("log.logContent IS NOT NULL")
+      .andWhere("log.logContent != ''")
+      .groupBy("log.logContent")
+      .orderBy("count", "DESC")
+      .limit(5)
+      .getRawMany();
+
+    return result.map((r) => ({ keyword: r.keyword, count: parseInt(r.count) }));
   }
 }

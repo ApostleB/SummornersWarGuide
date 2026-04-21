@@ -12,7 +12,8 @@ export class GameViewController {
   @Render("game/defence")
   async defence(@Req() req: Request) {
     const { defenceCount, attackCount } = await this.gameService.getStats();
-    return { user: req.user || null, defenceCount, attackCount };
+    const bestKeywords = await this.gameService.getBestKeywords();
+    return { user: req.user || null, defenceCount, attackCount, bestKeywords };
   }
 
   @Get("register")

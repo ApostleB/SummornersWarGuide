@@ -8,6 +8,82 @@
     <link rel="stylesheet" href="/public/css/common/layout.css">
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/game.css">
+    <style>
+        .best-keywords-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin-top: 8px;
+        }
+        .best-keywords-label {
+            font-size: 12px;
+            color: #888;
+            margin-right: 2px;
+        }
+        .best-keyword-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 14px;
+            border: 1px solid #555;
+            background: transparent;
+            color: #ccc;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .best-keyword-btn:hover {
+            border-color: #4a7cf4;
+            color: #4a7cf4;
+        }
+        .best-keyword-rank {
+            font-size: 11px;
+            font-weight: bold;
+            color: #4a7cf4;
+            min-width: 12px;
+        }
+        .notice-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #aaa;
+            background: transparent;
+            color: #aaa;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            margin-left: 8px;
+        }
+        .notice-toggle-btn.on {
+            border-color: #4a7cf4;
+            color: #4a7cf4;
+            background: rgba(74,124,244,0.1);
+        }
+        .notice-toggle-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        .board-images {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .board-attach-img {
+            width: 100%;
+            border-radius: 6px;
+            object-fit: contain;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+    </style>
 </head>
 <body>
     <%- include('../partials/header') %>
@@ -18,19 +94,36 @@
                 <h1 class="page-title">방어 덱 목록</h1>
 <!--                <p class="page-desc">몬스터 이름으로 검색하여 방어 덱과 공략 정보를 확인하세요</p>-->
                 <p class="page-desc">총 <strong><%= defenceCount %></strong>개의 방덱과 총 <strong><%= attackCount %></strong>개의 공덱이 등록되어 있습니다.</p>
-                <div class="search-container" style="max-width: 600px; margin: 20px auto 0;">
-                    <input type="text" class="search-input" id="pageSearchInput" placeholder="몬스터 이름 검색..." autocomplete="off">
-                    <button type="button" class="reset-btn" id="pageResetBtn" aria-label="초기화" style="display: none;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                    <button type="button" class="search-btn" id="pageSearchBtn" aria-label="검색">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
+                <% if (bestKeywords && bestKeywords.length > 0) { %>
+                <p class="page-desc best-keywords-row">
+                    <span class="best-keywords-label">인기 검색어</span>
+                    <% for (let i = 0; i < bestKeywords.length; i++) { %>
+                        <button type="button" class="best-keyword-btn" onclick="applyBestKeyword('<%= bestKeywords[i].keyword %>')">
+                            <span class="best-keyword-rank"><%= bestKeywords[i].keyword %></span>
+                        </button>
+                    <% } %>
+                </p>
+                <% } %>
+
+                <div style="display:flex; align-items:center; max-width:660px; margin:20px auto 0;">
+                    <div class="search-container" style="flex:1; margin:0;">
+                        <input type="text" class="search-input" id="pageSearchInput" placeholder="몬스터 이름 검색..." autocomplete="off">
+                        <button type="button" class="reset-btn" id="pageResetBtn" aria-label="초기화" style="display: none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                        <button type="button" class="search-btn" id="pageSearchBtn" aria-label="검색">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <button type="button" class="notice-toggle-btn" id="noticeToggleBtn">
+                        <span class="notice-toggle-dot"></span>
+                        <span id="noticeToggleLabel">공지</span>
                     </button>
                 </div>
             </div>
@@ -39,6 +132,42 @@
     </main>
 
     <script>
+        function applyBestKeyword(keyword) {
+            const input = document.getElementById('pageSearchInput');
+            const resetBtn = document.getElementById('pageResetBtn');
+            input.value = keyword;
+            if (resetBtn) resetBtn.style.display = 'flex';
+            const headerInput = document.getElementById('headerSearchInput');
+            if (headerInput) headerInput.value = keyword;
+            const url = new URL(window.location);
+            url.searchParams.set('keyword', keyword);
+            window.history.pushState({}, '', url);
+            fetchDefenceList(keyword);
+        }
+
+        // 공지사항 토글
+        let noticeOn = localStorage.getItem('noticeToggle') !== 'off';
+
+        (function initNoticeToggle() {
+            const btn = document.getElementById('noticeToggleBtn');
+            const label = document.getElementById('noticeToggleLabel');
+
+            function applyToggleUI() {
+                btn.classList.toggle('on', noticeOn);
+                label.textContent = noticeOn ? '공지 ON' : '공지 OFF';
+            }
+
+            applyToggleUI();
+
+            btn.addEventListener('click', () => {
+                noticeOn = !noticeOn;
+                localStorage.setItem('noticeToggle', noticeOn ? 'on' : 'off');
+                applyToggleUI();
+                const kw = document.getElementById('pageSearchInput').value.trim();
+                if (!kw) fetchDefenceList('');
+            });
+        })();
+
         // 페이지 검색 기능
         (function() {
             const pageSearchInput = document.getElementById('pageSearchInput');
@@ -123,7 +252,7 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const keyword = keywordOverride !== undefined ? keywordOverride : (urlParams.get('keyword') || '');
 
-                if (!keyword) {
+                if (!keyword && noticeOn) {
                     fetchBoardList();
                     return;
                 }
@@ -156,7 +285,13 @@
                 return;
             }
 
-            container.innerHTML = boardList.map(board => `
+            container.innerHTML = boardList.map(board => {
+                const files = (board.boardFileList || []).filter(f => f.delYn !== 'Y');
+                const imagesHtml = files.length > 0 ? `
+                    <div class="board-images">
+                        ${files.map(f => `<img src="/public/image/board/${f.filePath}" alt="첨부 이미지" class="board-attach-img">`).join('')}
+                    </div>` : '';
+                return `
                 <div class="defence-card" id="board-card-${board.boardId}" data-id="${board.boardId}" onclick="toggleBoardAccordion('${board.boardId}')">
                     <div class="card-header">
                         <div class="board-title-text">${board.boardTitle}</div>
@@ -169,10 +304,11 @@
                                 <span class="board-date">${board.inputDt ? new Date(board.inputDt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '-'}</span>
                             </div>
                             <div class="board-content-text">${(board.boardContent || '').replace(/\n/g, '<br>')}</div>
+                            ${imagesHtml}
                         </div>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         function toggleBoardAccordion(boardId) {

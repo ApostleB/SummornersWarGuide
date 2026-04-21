@@ -20,8 +20,9 @@ export class GameController {
   constructor(private readonly gameService: GameService) {}
 
   @Get("defence")
-  async defenceList(@Query("keyword") keyword: string, @Res() res: Response) {
-    const defenceList = await this.gameService.getDefenceList(keyword);
+  async defenceList(@Query("keyword") keyword: string, @Req() req: Request, @Res() res: Response) {
+    const user = req.user as AuthUser;
+    const defenceList = await this.gameService.getDefenceList(keyword, user?.memberId);
     return res.status(HttpStatus.OK).json(defenceList);
   }
 
@@ -45,8 +46,9 @@ export class GameController {
 
   // 몬스터 자동완성 검색
   @Get("monsters/search")
-  async searchMonsters(@Query("keyword") keyword: string) {
-    const monsters = await this.gameService.searchMonsters(keyword);
+  async searchMonsters(@Query("keyword") keyword: string, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    const monsters = await this.gameService.searchMonsters(keyword, user?.memberId);
     return { success: true, monsters };
   }
 

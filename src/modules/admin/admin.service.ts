@@ -4,6 +4,7 @@ import { Repository } from "typeorm";
 import { DtlCd, YesNo } from "../code/entities/dtl-cd.entity";
 import { GrpCd } from "../code/entities/grp-cd.entity";
 import { Board } from "../board/entities/board.entity";
+import { BoardFile } from "../board/entities/board-file.entity";
 
 @Injectable()
 export class AdminService {
@@ -14,6 +15,8 @@ export class AdminService {
     private grpCdRepository: Repository<GrpCd>,
     @InjectRepository(Board)
     private boardRepository: Repository<Board>,
+    @InjectRepository(BoardFile)
+    private boardFileRepository: Repository<BoardFile>,
   ) {}
 
   // ========== 메인 관리 ==========
@@ -31,11 +34,12 @@ export class AdminService {
     await this.dtlCdRepository.update({ code: "MCONT001" }, data);
   }
 
-  // ========== 코드 관리 ==========
+  // ========== 게시판 관리 ==========
 
   async getBoardList(boardType: string): Promise<Board[]> {
     return this.boardRepository.find({
       where: { boardType },
+      relations: ["boardFileList"],
       order: { boardOrder: "ASC" },
     });
   }
@@ -55,6 +59,38 @@ export class AdminService {
   async deleteBoard(boardId: string): Promise<void> {
     await this.boardRepository.update({ boardId }, { useYn: YesNo.N });
   }
+
+  // ========== 게시판 파일 관리 ==========
+
+  async createBoardFile(data: {
+    boardId: string;
+    filePath: string;
+    fileExt: string;
+    fileOrd: number;
+    inputId: string;
+  }): Promise<BoardFile> {
+    const boardFile = this.boardFileRepository.create({
+      ...data,
+    });
+    return this.boardFileRepository.save(boardFile);
+  }
+
+  async getBoardFiles(boardId: string): Promise<BoardFile[]> {
+    return this.boardFileRepository.find({
+      where: { boardId, delYn: "N" as any },
+      order: { fileOrd: "ASC" },
+    });
+  }
+
+  async softDeleteBoardFile(fileId: string): Promise<void> {
+    await this.boardFileRepository.update({ fileId }, { delYn: "Y" as any });
+  }
+
+  async softDeleteBoardFilesByBoardId(boardId: string): Promise<void> {
+    await this.boardFileRepository.update({ boardId }, { delYn: "Y" as any });
+  }
+
+  // ========== 코드 관리 ==========
 
   async getGrpCdList(): Promise<GrpCd[]> {
     return this.grpCdRepository.find({
