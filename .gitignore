@@ -4,4 +4,4 @@ dist/
 .env
 Context/*.md
 *.sql
-
+package-lock.json
