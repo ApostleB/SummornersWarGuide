@@ -274,7 +274,7 @@
                 <tbody>
                     ${boardList.map(board => {
                         const activeFiles = (board.boardFileList || []).filter(f => f.delYn !== 'Y');
-                        const thumbsHtml = activeFiles.slice(0, 3).map(f =>
+                        const thumbsHtml = activeFiles.map(f =>
                             `<img src="/public/image/board/${f.filePath}" alt="이미지">`
                         ).join('');
                         return `
