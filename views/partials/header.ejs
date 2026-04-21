@@ -34,14 +34,15 @@
 
             <% if (user?.level >= 50) { %>
 
-                <!-- 공지사항관리 (아코디언) -->
+                <!-- 게시판관리 (아코디언) -->
                 <li class="menu-item menu-accordion menu-bottom">
                     <div class="menu-accordion-header" onclick="toggleMenuAccordion(this)">
-                        <span>공지사항관리</span>
+                        <span>게시판</span>
                         <span class="accordion-arrow">▼</span>
                     </div>
                     <ul class="menu-accordion-body">
                         <li><a href="/admin/board" class="menu-sub-link">공지사항 관리</a></li>
+                        <li><a href="/admin/patch-note" class="menu-sub-link">패치노트 관리</a></li>
                     </ul>
                 </li>
                 <!-- 방덱관리 (아코디언) -->

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
-    <title>관리자 - 게시판 관리</title>
+    <title>관리자 - 패치노트 관리</title>
     <link rel="stylesheet" href="/public/css/common/layout.css">
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/admin.css">
@@ -17,30 +17,30 @@
 <main class="main-content">
     <div class="admin-container">
         <div class="page-header">
-            <h1 class="page-title">게시판 관리</h1>
-            <p class="page-desc">공지사항 및 게시글을 관리합니다</p>
+            <h1 class="page-title">패치노트 관리</h1>
+            <p class="page-desc">게임 업데이트 및 패치노트를 관리합니다</p>
         </div>
 
         <div class="code-container">
             <!-- 게시글 목록 -->
             <div class="dtl-panel">
                 <div class="dtl-header">
-                    <div class="dtl-title">공지사항 목록</div>
-                    <button class="btn-primary" onclick="openAddForm()">+ 게시글 추가</button>
+                    <div class="dtl-title">패치노트 목록</div>
+                    <button class="btn-primary" onclick="openAddForm()">+ 패치노트 추가</button>
                 </div>
 
                 <div class="dtl-list" id="boardListContainer">
-                    <div class="empty-state">게시판 타입을 선택해주세요</div>
+                    <div class="empty-state">목록을 불러오는 중...</div>
                 </div>
 
                 <!-- 게시글 추가/수정 폼 -->
                 <div class="edit-panel" id="editPanel" style="display:none;">
-                    <div class="edit-panel-title" id="editPanelTitle">게시글 추가</div>
+                    <div class="edit-panel-title" id="editPanelTitle">패치노트 추가</div>
                     <input type="hidden" id="editBoardId">
                     <div class="form-grid">
                         <div class="form-group">
                             <label>제목 *</label>
-                            <input type="text" id="editBoardTitle" placeholder="게시글 제목">
+                            <input type="text" id="editBoardTitle" placeholder="패치노트 제목">
                         </div>
                         <div class="form-group">
                             <label>순서</label>
@@ -80,7 +80,7 @@
 </main>
 
 <script>
-    const BOARD_TYPE = 'NOTICE';
+    const BOARD_TYPE = 'PATCH';
     const MAX_IMAGES = 5;
     let editMode = 'add';
     let pendingDeleteFileIds = [];
@@ -181,7 +181,7 @@
     function renderBoardList(boardList) {
         const container = document.getElementById('boardListContainer');
         if (!boardList || boardList.length === 0) {
-            container.innerHTML = '<div class="empty-state">등록된 게시글이 없습니다</div>';
+            container.innerHTML = '<div class="empty-state">등록된 패치노트가 없습니다</div>';
             return;
         }
 
@@ -234,7 +234,7 @@
     function openAddForm() {
         editMode = 'add';
         resetImageState();
-        document.getElementById('editPanelTitle').textContent = '게시글 추가';
+        document.getElementById('editPanelTitle').textContent = '패치노트 추가';
         document.getElementById('editBoardId').value = '';
         document.getElementById('editBoardTitle').value = '';
         document.getElementById('editBoardContent').value = '';
@@ -250,7 +250,7 @@
 
         editMode = 'edit';
         resetImageState();
-        document.getElementById('editPanelTitle').textContent = '게시글 수정';
+        document.getElementById('editPanelTitle').textContent = '패치노트 수정';
         document.getElementById('editBoardId').value = board.boardId;
         document.getElementById('editBoardTitle').value = board.boardTitle || '';
         document.getElementById('editBoardContent').value = board.boardContent || '';
@@ -315,7 +315,7 @@
             }
 
             if (response.ok) {
-                alert(editMode === 'add' ? '게시글이 추가되었습니다.' : '게시글이 수정되었습니다.');
+                alert(editMode === 'add' ? '패치노트가 추가되었습니다.' : '패치노트가 수정되었습니다.');
                 closeEditPanel();
                 fetchBoardList();
             } else {
@@ -328,7 +328,7 @@
     }
 
     async function deleteBoard(boardId) {
-        if (!confirm('이 게시글을 삭제하시겠습니까?')) return;
+        if (!confirm('이 패치노트를 삭제하시겠습니까?')) return;
 
         try {
             const response = await fetch(`/api/admin/board/${boardId}`, {
@@ -337,7 +337,7 @@
             });
 
             if (response.ok) {
-                alert('게시글이 삭제되었습니다.');
+                alert('패치노트가 삭제되었습니다.');
                 fetchBoardList();
                 closeEditPanel();
             } else {

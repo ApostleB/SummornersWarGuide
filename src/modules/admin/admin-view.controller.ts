@@ -66,6 +66,13 @@ export class AdminViewController {
     return { user: req.user || null };
   }
 
+  //패치노트 관리
+  @Get("patch-note")
+  @Render("admin/board/patch-note")
+  adminPatchNoteMain(@Req() req: Request) {
+    return { user: req.user || null };
+  }
+
   // 메인관리
   @MinLevel("99")
   @Get("code/main")
