@@ -95,14 +95,14 @@
 <!--                <p class="page-desc">몬스터 이름으로 검색하여 방어 덱과 공략 정보를 확인하세요</p>-->
                 <p class="page-desc">총 <strong><%= defenceCount %></strong>개의 방덱과 총 <strong><%= attackCount %></strong>개의 공덱이 등록되어 있습니다.</p>
                 <% if (bestKeywords && bestKeywords.length > 0) { %>
-                <p class="page-desc best-keywords-row">
-                    <span class="best-keywords-label">인기 검색어</span>
-                    <% for (let i = 0; i < bestKeywords.length; i++) { %>
-                        <button type="button" class="best-keyword-btn" onclick="applyBestKeyword('<%= bestKeywords[i].keyword %>')">
-                            <span class="best-keyword-rank"><%= bestKeywords[i].keyword %></span>
-                        </button>
-                    <% } %>
-                </p>
+                    <p class="page-desc best-keywords-row">
+                        <span class="best-keywords-label">인기 검색어</span>
+                        <% for (let i = 0; i < bestKeywords.length; i++) { %>
+                            <button type="button" class="best-keyword-btn" onclick="applyBestKeyword('<%= bestKeywords[i].keyword %>')">
+                                <span class="best-keyword-rank"><%= bestKeywords[i].keyword %></span>
+                            </button>
+                        <% } %>
+                    </p>
                 <% } %>
 
                 <div style="display:flex; align-items:center; max-width:660px; margin:20px auto 0;">

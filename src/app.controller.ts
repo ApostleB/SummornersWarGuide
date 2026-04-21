@@ -8,15 +8,22 @@ export class AppController {
 
   @Get()
   async main(@Req() req: Request, @Res() res: Response) {
-    const renderPage = req.user ? "index" : "auth/login";
+    if (req.user) {
+      const content = await this.appService.getMainContent();
+      return res.render("index", {
+        title: "서머너즈 워 가이드",
+        user: req.user,
+        content: content.text,
+        images: content.images,
+      });
+    }
 
-    const mainContent = await this.appService.getMainContent();
-
-    return res.render(renderPage, {
+    const content = await this.appService.getGuestContent();
+    return res.render("auth/login", {
       title: "서머너즈 워 가이드",
-      user: req.user || null,
-      content: mainContent.text,
-      images: mainContent.images,
+      user: null,
+      content: content.text,
+      images: content.images,
     });
   }
 }
