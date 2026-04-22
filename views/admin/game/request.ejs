@@ -186,6 +186,9 @@
                         </div>
                         <div class="attack-body-row">
                             <div class="attack-desc-list">
+                                ${attack.isCertify === 'Y'
+                                    ? `<span style="display:inline-flex;align-items:center;gap:3px;width:fit-content;color:#0300AA;background:rgba(3,0,170,0.08);border:1px solid rgba(3,0,170,0.25);border-radius:20px;font-size:11px;font-weight:600;padding:2px 8px;"><img src="/public/image/certify_sm.png" style="height:12px;">길드인증공덱</span>`
+                                    : `<span style="display:inline-flex;align-items:center;width:fit-content;color:#E97300;background:rgba(233,115,0,0.08);border:1px solid rgba(233,115,0,0.25);border-radius:20px;font-size:11px;font-weight:600;padding:2px 8px;">일반공덱</span>`}
                                 ${attack.deckDesc1 ? `<div class="attack-desc-item"><strong>비고1:</strong> ${attack.deckDesc1}</div>` : ''}
                                 ${attack.deckDesc2 ? `<div class="attack-desc-item"><strong>비고2:</strong> ${attack.deckDesc2}</div>` : ''}
                                 ${!attack.deckDesc1 && !attack.deckDesc2 ? '<div class="attack-desc-empty">설명 없음</div>' : ''}
@@ -213,6 +216,18 @@
                         </div>
                         <div class="edit-desc-group">
                             <div class="edit-desc-row">
+                                <label class="edit-desc-label">공덱 유형</label>
+                                <div style="display:flex;gap:16px;align-items:center;">
+                                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                                        <input type="radio" name="isCertify-${attack.attackId}" value="N" ${attack.isCertify !== 'Y' ? 'checked' : ''}> 일반공덱
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                                        <input type="radio" name="isCertify-${attack.attackId}" value="Y" ${attack.isCertify === 'Y' ? 'checked' : ''}>
+                                        <img src="/public/image/certify_sm.png" style="height:13px;"> 길드인증공덱
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="edit-desc-row">
                                 <label class="edit-desc-label">비고1</label>
                                 <textarea class="edit-desc-textarea" id="edit-desc1-${attack.attackId}">${attack.deckDesc1 || ''}</textarea>
                             </div>
@@ -234,11 +249,21 @@
     function enableAttackEdit(attackId) {
         document.getElementById(`attack-view-${attackId}`).style.display = 'none';
         document.getElementById(`attack-edit-${attackId}`).style.display = 'block';
+        updateAccordionHeight(attackId);
     }
 
     function disableAttackEdit(attackId) {
         document.getElementById(`attack-view-${attackId}`).style.display = 'block';
         document.getElementById(`attack-edit-${attackId}`).style.display = 'none';
+        updateAccordionHeight(attackId);
+    }
+
+    function updateAccordionHeight(attackId) {
+        const accordionBody = document.getElementById(`attack-item-${attackId}`)?.closest('.accordion-body');
+        if (accordionBody) {
+            accordionBody.style.maxHeight = 'none';
+            accordionBody.style.maxHeight = accordionBody.scrollHeight + 'px';
+        }
     }
 
     async function saveAttackEdit(attackId, defenceId) {
@@ -247,12 +272,13 @@
         const monsterC = document.getElementById(`edit-monC-${attackId}`).value.trim();
         const deckDesc1 = document.getElementById(`edit-desc1-${attackId}`).value.trim();
         const deckDesc2 = document.getElementById(`edit-desc2-${attackId}`).value.trim();
+        const isCertify = document.querySelector(`input[name="isCertify-${attackId}"]:checked`).value;
 
         try {
             const response = await fetch(`/api/admin/attack/${attackId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ monsterA, monsterB, monsterC, deckDesc1, deckDesc2 }),
+                body: JSON.stringify({ monsterA, monsterB, monsterC, deckDesc1, deckDesc2, isCertify }),
                 credentials: 'include'
             });
 

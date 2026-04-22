@@ -277,10 +277,15 @@
                         </div>
                         <div class="attack-body-row">
                             <div class="attack-desc-list">
-                                ${attack.deckOrder != null && attack.deckOrder !== '' ? `<div class="attack-desc-item"><strong>덱 순서:</strong> ${(() => { const c = deckOrdCodes.find(c => String(c.codeValue) === String(attack.deckOrder)); return c ? c.codeTitle : attack.deckOrder; })()}</div>` : ''}
+                                <div class="attack-desc-item" style="display:flex;align-items:center;gap:8px;">
+                                    ${attack.deckOrder != null && attack.deckOrder !== '' ? `<span><strong>덱 순서:</strong> ${(() => { const c = deckOrdCodes.find(c => String(c.codeValue) === String(attack.deckOrder)); return c ? c.codeTitle : attack.deckOrder; })()}</span>` : ''}
+                                    ${attack.isCertify === 'Y'
+                                        ? `<span style="display:inline-flex;align-items:center;gap:3px;width:fit-content;color:#0300AA;background:rgba(3,0,170,0.08);border:1px solid rgba(3,0,170,0.25);border-radius:20px;font-size:11px;font-weight:600;padding:2px 8px;"><img src="/public/image/certify_sm.png" style="height:12px;">길드인증</span>`
+                                        : `<span style="display:inline-flex;align-items:center;width:fit-content;color:#E97300;background:rgba(233,115,0,0.08);border:1px solid rgba(233,115,0,0.25);border-radius:20px;font-size:11px;font-weight:600;padding:2px 8px;">일반공덱</span>`}
+                                </div>
                                 ${attack.deckDesc1 ? `<div class="attack-desc-item"><strong>비고1:</strong> ${attack.deckDesc1.replace(/\n/g, '<br>')}</div>` : ''}
                                 ${attack.deckDesc2 ? `<div class="attack-desc-item"><strong>비고2:</strong> ${attack.deckDesc2.replace(/\n/g, '<br>')}</div>` : ''}
-                                ${!attack.deckOrder && !attack.deckDesc1 && !attack.deckDesc2 ? '<div class="attack-desc-empty">설명 없음</div>' : ''}
+                                ${!attack.deckOrder && !attack.deckDesc1 && !attack.deckDesc2 ? '<div class="attack-desc-empty"></div>' : ''}
                             </div>
                             <div class="attack-view-actions">
                                 <button class="action-btn edit-btn" onclick="enableAttackEdit('${attack.attackId}')">수정</button>
@@ -308,6 +313,13 @@
                                 <select class="edit-desc-select" id="edit-deckOrd-${attack.attackId}">
                                     ${renderDeckOrdOptions(attack.deckOrder ?? '', usedOrders)}
                                 </select>
+                            </div>
+                            <div class="edit-desc-row">
+                                <label class="edit-desc-label">길드인증공덱</label>
+                                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                                    <input type="checkbox" id="edit-certify-${attack.attackId}" ${attack.isCertify === 'Y' ? 'checked' : ''}>
+                                    <img src="/public/image/certify_lg.png" style="height:16px;">
+                                </label>
                             </div>
                             <div class="edit-desc-row">
                                 <label class="edit-desc-label">비고1</label>
@@ -353,6 +365,7 @@
         const monsterB = document.getElementById(`edit-monB-${attackId}`).value.trim();
         const monsterC = document.getElementById(`edit-monC-${attackId}`).value.trim();
         const deckOrder = document.getElementById(`edit-deckOrd-${attackId}`).value;
+        const isCertify = document.getElementById(`edit-certify-${attackId}`).checked ? 'Y' : 'N';
         const deckDesc1 = document.getElementById(`edit-desc1-${attackId}`).value.trim();
         const deckDesc2 = document.getElementById(`edit-desc2-${attackId}`).value.trim();
 
@@ -360,7 +373,7 @@
             const response = await fetch(`/api/admin/attack/${attackId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ monsterA, monsterB, monsterC, deckOrder, deckDesc1, deckDesc2 }),
+                body: JSON.stringify({ monsterA, monsterB, monsterC, deckOrder, isCertify, deckDesc1, deckDesc2 }),
                 credentials: 'include'
             });
 

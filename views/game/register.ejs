@@ -70,6 +70,23 @@
                 </div>
             </div>
 
+            <!-- 공덱 유형 선택 -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span class="badge badge-attack">공덱</span>
+                    공덱 유형
+                </div>
+                <div style="display:flex;gap:24px;padding:4px 0;">
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                        <input type="radio" name="isCertify" value="N" checked> 일반공덱
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                        <input type="radio" name="isCertify" value="Y">
+                        <img src="/public/image/certify_sm.png" style="height:14px;vertical-align:middle;"> 길드인증공덱
+                    </label>
+                </div>
+            </div>
+
             <!-- 비고 입력 -->
             <div class="form-section">
                 <div class="section-title">비고</div>
@@ -169,6 +186,7 @@
         });
         document.getElementById('deckDesc1').value = '';
         document.getElementById('deckDesc2').value = '';
+        document.querySelector('input[name="isCertify"][value="N"]').checked = true;
     }
 
     function validateRequiredFields() {
@@ -209,6 +227,7 @@
         const attackMonsterC = document.getElementById('attackMonsterC').value.trim();
         const deckDesc1 = document.getElementById('deckDesc1').value.trim();
         const deckDesc2 = document.getElementById('deckDesc2').value.trim();
+        const isCertify = document.querySelector('input[name="isCertify"]:checked').value;
 
         try {
             const response = await fetch('/api/game/deck/register', {
@@ -222,7 +241,8 @@
                     attackMonsterB,
                     attackMonsterC,
                     deckDesc1,
-                    deckDesc2
+                    deckDesc2,
+                    isCertify
                 }),
                 credentials: 'include'
             });

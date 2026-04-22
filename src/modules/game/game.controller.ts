@@ -80,6 +80,7 @@ export class GameController {
       attackMonsterC: data.attackMonsterC,
       deckDesc1: data.deckDesc1,
       deckDesc2: data.deckDesc2,
+      isCertify: data.isCertify,
       memberId: user.memberId,
     });
     return res.status(HttpStatus.OK).json(result);

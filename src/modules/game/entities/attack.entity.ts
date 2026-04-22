@@ -78,6 +78,14 @@ export class Attack {
   })
   confirmYn: "Y" | "N";
 
+  @Column({
+    name: "IS_CERTIFY",
+    type: "enum",
+    enum: ["Y", "N"],
+    default: "N",
+  })
+  isCertify: "Y" | "N";
+
   @ManyToOne(() => Defence, (defence) => defence.attackList)
   @JoinColumn({ name: "DEFENCE_ID" })
   defence: Defence;

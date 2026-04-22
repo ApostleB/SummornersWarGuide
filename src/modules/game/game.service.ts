@@ -176,6 +176,7 @@ export class GameService {
     attackMonsterC: string;
     deckDesc1: string;
     deckDesc2: string;
+    isCertify: string;
     memberId: string;
   }): Promise<{ success: boolean; message: string }> {
     const monsterTypeCodes = await this.dtlCdRepository.find({
@@ -240,6 +241,7 @@ export class GameService {
       monsterCType: findTypeByTitle(getTypeTitle(data.attackMonsterC)),
       deckDesc1: data.deckDesc1 || "",
       deckDesc2: data.deckDesc2 || "",
+      isCertify: (data.isCertify === "Y" ? "Y" : "N") as "Y" | "N",
       inputId: data.memberId,
       confirmYn: "N",
     });
@@ -319,6 +321,7 @@ export class GameService {
     return {
       attackList: (defence.attackList || []).map((attack) => ({
         attackId: attack.attackId,
+        isCertify: attack.isCertify,
         attackMonsterA: this.mapMonsterInfo(attack.monsterA, attack.monsterAType),
         attackMonsterB: this.mapMonsterInfo(attack.monsterB, attack.monsterBType),
         attackMonsterC: this.mapMonsterInfo(attack.monsterC, attack.monsterCType),

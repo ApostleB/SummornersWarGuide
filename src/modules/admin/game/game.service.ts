@@ -220,6 +220,7 @@ export class AdminGameService {
       attackList: attacks.map((attack) => ({
         attackId: attack.attackId,
         confirmYn: attack.confirmYn,
+        isCertify: attack.isCertify,
         attackMonsterA: this.mapMonsterInfo(attack.monsterA, attack.monsterAType),
         attackMonsterB: this.mapMonsterInfo(attack.monsterB, attack.monsterBType),
         attackMonsterC: this.mapMonsterInfo(attack.monsterC, attack.monsterCType),
@@ -343,6 +344,9 @@ export class AdminGameService {
     }
     if (updateData.deckDesc2 !== undefined) {
       attack.deckDesc2 = updateData.deckDesc2;
+    }
+    if (updateData.isCertify !== undefined) {
+      attack.isCertify = updateData.isCertify;
     }
     if (updateData.deckOrder !== undefined) {
       const newOrder = updateData.deckOrder || null;
