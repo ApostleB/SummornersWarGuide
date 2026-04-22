@@ -33,8 +33,8 @@ export class AdminMemberService {
     await this.memberRepository.update(memberId, { status });
   }
 
-  async getAllMembers(): Promise<Member[]> {
-    return this.memberRepository.find({
+  async getAllMembers(): Promise<(Omit<Member, 'generateId'> & { lastRefreshDt: Date | null })[]> {
+    const members = await this.memberRepository.find({
       where: {
         status: Not(
           In([MemberStatus.WAIT, MemberStatus.REJECT, MemberStatus.FAIL]),
@@ -42,6 +42,25 @@ export class AdminMemberService {
       },
       order: { inputDt: "DESC" },
     });
+
+    const memberIds = members.map((m) => m.memberId);
+    if (memberIds.length === 0) return members.map((m) => ({ ...m, lastRefreshDt: null }));
+
+    const refreshLogs = await this.memberLogRepository
+      .createQueryBuilder("log")
+      .select("log.memberId", "memberId")
+      .addSelect("MAX(log.inputDt)", "lastRefreshDt")
+      .where("log.memberId IN (:...memberIds)", { memberIds })
+      .andWhere("log.logType = :logType", { logType: LogType.REFRESH })
+      .groupBy("log.memberId")
+      .getRawMany();
+
+    const refreshMap = new Map(refreshLogs.map((r) => [r.memberId, r.lastRefreshDt]));
+
+    return members.map((m) => ({
+      ...m,
+      lastRefreshDt: refreshMap.get(m.memberId) ?? null,
+    }));
   }
 
   async resetMemberPassword(memberId: string): Promise<void> {
