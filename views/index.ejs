@@ -34,6 +34,7 @@
     let patchNoteList = [];
     let patchNoteIndex = 0;
     let patchNoteOn = localStorage.getItem('patchNoteToggle') !== 'off';
+    let patchNoteOpen = false;
 
     async function fetchPatchNotes() {
         try {
@@ -91,25 +92,56 @@
             : '';
 
         return `
-            <div class="defence-card" style="width:100%;box-sizing:border-box;min-height:50vh;">
-                <div class="card-header" style="cursor:default;">
+            <div class="defence-card ${patchNoteOpen ? 'open' : ''}" id="patchCard" style="width:100%;box-sizing:border-box;" onclick="togglePatchAccordion()">
+                <div class="card-header">
                     <div class="board-title-text">${note.boardTitle}</div>
+                    <span class="chevron">▼</span>
                 </div>
-                <div class="accordion-inner" style="padding:12px 16px;min-height:50vh;display:flex;flex-direction:column;">
-                    <div class="board-meta-row">
-                        <span class="board-author">${note.inputMember ? (note.inputMember.nickname || note.inputMember.name || '-') : '-'}</span>
-                        <span class="board-date">${dateStr}</span>
-                    </div>
-                    <div class="board-content-text">${(note.boardContent || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim()}</div>
-                    ${imagesHtml}
-                    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:auto;padding-top:12px;">
-                        <button class="slider-nav-btn" style="flex:unset;width:30%;padding:4px 0;" onclick="changePatchPage(-1)" ${patchNoteIndex === 0 ? 'disabled' : ''}>이전</button>
-                        <span style="font-size:12px;color:#888;">${patchNoteIndex + 1} / ${total}</span>
-                        <button class="slider-nav-btn" style="flex:unset;width:30%;padding:4px 0;" onclick="changePatchPage(1)" ${patchNoteIndex === total - 1 ? 'disabled' : ''}>다음</button>
+                <div class="accordion-body" id="patchBody">
+                    <div class="accordion-inner" style="padding:12px 16px;min-height:50vh;display:flex;flex-direction:column;">
+                        <div class="board-meta-row">
+                            <span class="board-author">${note.inputMember ? (note.inputMember.nickname || note.inputMember.name || '-') : '-'}</span>
+                            <span class="board-date">${dateStr}</span>
+                        </div>
+                        <div class="board-content-text">${(note.boardContent || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim()}</div>
+                        ${imagesHtml}
+                        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:auto;padding-top:12px;" onclick="event.stopPropagation()">
+                            <button class="slider-nav-btn" style="flex:unset;width:30%;padding:4px 0;" onclick="changePatchPage(-1)" ${patchNoteIndex === 0 ? 'disabled' : ''}>이전</button>
+                            <span style="font-size:12px;color:#888;">${patchNoteIndex + 1} / ${total}</span>
+                            <button class="slider-nav-btn" style="flex:unset;width:30%;padding:4px 0;" onclick="changePatchPage(1)" ${patchNoteIndex === total - 1 ? 'disabled' : ''}>다음</button>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
+    }
+
+    function openPatchBody() {
+        const body = document.getElementById('patchBody');
+        if (!body) return;
+        // 닫힘 → 열림 애니메이션 후 none으로 풀어 잘림 방지
+        body.style.maxHeight = body.scrollHeight + 'px';
+        body.addEventListener('transitionend', function onEnd() {
+            body.style.maxHeight = 'none';
+            body.removeEventListener('transitionend', onEnd);
+        });
+    }
+
+    function togglePatchAccordion() {
+        const card = document.getElementById('patchCard');
+        const body = document.getElementById('patchBody');
+        if (patchNoteOpen) {
+            body.style.maxHeight = body.scrollHeight + 'px';
+            requestAnimationFrame(() => {
+                body.style.maxHeight = '0';
+                card.classList.remove('open');
+                patchNoteOpen = false;
+            });
+        } else {
+            card.classList.add('open');
+            patchNoteOpen = true;
+            openPatchBody();
+        }
     }
 
     function changePatchPage(direction) {
@@ -117,6 +149,12 @@
         if (newIndex < 0 || newIndex >= patchNoteList.length) return;
         patchNoteIndex = newIndex;
         document.getElementById('patchNoteSection').innerHTML = renderPatchNoteCard();
+        if (patchNoteOpen) {
+            const body = document.getElementById('patchBody');
+            body.style.transition = 'none';
+            body.style.maxHeight = 'none';
+            requestAnimationFrame(() => body.style.transition = '');
+        }
     }
 
     fetchPatchNotes();
