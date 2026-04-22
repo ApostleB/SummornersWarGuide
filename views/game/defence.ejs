@@ -45,9 +45,8 @@
                             </svg>
                         </button>
                     </div>
-                    <button type="button" class="notice-toggle-btn" id="noticeToggleBtn">
-                        <span class="notice-toggle-dot"></span>
-                        <span id="noticeToggleLabel">공지</span>
+                    <button type="button" class="notice-slide-toggle" id="noticeToggleBtn">
+                        <span class="notice-slide-thumb"></span>
                     </button>
                 </div>
             </div>
@@ -74,11 +73,9 @@
 
         (function initNoticeToggle() {
             const btn = document.getElementById('noticeToggleBtn');
-            const label = document.getElementById('noticeToggleLabel');
 
             function applyToggleUI() {
                 btn.classList.toggle('on', noticeOn);
-                label.textContent = noticeOn ? '공지 ON' : '공지 OFF';
             }
 
             applyToggleUI();
