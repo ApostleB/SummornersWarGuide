@@ -247,6 +247,8 @@ export class AuthService {
         },
       );
 
+      await this.createLog(member.memberId, LogType.REFRESH, "SUCCESS");
+
       return { accessToken: newAccessToken };
     } catch (error) {
       // Refresh token이 만료된 경우
