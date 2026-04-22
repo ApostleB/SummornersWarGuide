@@ -43,3 +43,183 @@
     background: #D80546;
 }
 
+/* Member Management Styles */
+.member-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 12px;
+    overflow: hidden;
+    border: 1px solid #edf2f7;
+}
+
+.member-header {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.member-info-brief {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.member-name-tag {
+    font-weight: 700;
+    font-size: 16px;
+    color: #1a202c;
+}
+
+.member-status-badge {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.status-wait { background: #feebc8; color: #975a16; }
+.status-success { background: #c6f6d5; color: #22543d; }
+.status-reject { background: #fff5f5; color: #c53030; }
+.status-fail { background: #fed7d7; color: #c53030; }
+
+.member-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.btn-approve { background: #48bb78; color: white; }
+.btn-approve:hover { background: #38a169; }
+.btn-reject { background: #f56565; color: white; }
+.btn-reject:hover { background: #e53e3e; }
+.btn-delete { background: #E97300; color: white; }
+.btn-delete:hover { background: #dd6b00; }
+.btn-reset { background: #667eea; color: white; }
+.btn-reset:hover { background: #5a67d8; }
+.btn-kick { background: #718096; color: white; }
+.btn-kick:hover { background: #4a5568; }
+
+.request-date {
+    font-size: 12px;
+    color: #a0aec0;
+}
+
+.member-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: #f8fafc;
+    border-top: 1px solid #edf2f7;
+}
+
+.details-inner {
+    padding: 20px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.info-item label {
+    display: block;
+    font-size: 12px;
+    color: #718096;
+    margin-bottom: 4px;
+}
+
+.info-item span {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.log-container {
+    margin-top: 20px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.log-table th {
+    background: #edf2f7;
+    color: #4a5568;
+    padding: 8px 12px;
+    text-align: left;
+    position: sticky;
+    top: 0;
+}
+
+.log-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.chevron {
+    transition: transform 0.3s;
+    color: #a0aec0;
+}
+
+.member-card.open .chevron {
+    transform: rotate(180deg);
+}
+
+.member-card.open .member-details {
+    max-height: 1000px;
+}
+
+.details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 15px;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.log-header h4 {
+    font-size: 14px;
+    color: #4a5568;
+}
+
+@media (max-width: 600px) {
+    .member-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .member-actions {
+        width: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+}
+
