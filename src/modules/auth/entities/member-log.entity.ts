@@ -9,6 +9,7 @@ export enum LogType {
   LOGIN = "LOGIN",
   LOGOUT = "LOGOUT",
   SIGNUP = "SIGNUP",
+  REFRESH = "REFRESH",
 }
 
 @Entity("MEMBER_LOG")
