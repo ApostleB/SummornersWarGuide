@@ -9,12 +9,16 @@ export class AppController {
   @Get()
   async main(@Req() req: Request, @Res() res: Response) {
     if (req.user) {
-      const content = await this.appService.getMainContent();
+      const [content, patchNoteList] = await Promise.all([
+        this.appService.getMainContent(),
+        this.appService.getPatchNoteList(),
+      ]);
       return res.render("index", {
         title: "서머너즈 워 가이드",
         user: req.user,
         content: content.text,
         images: content.images,
+        patchNoteList,
       });
     }
 

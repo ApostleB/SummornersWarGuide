@@ -78,6 +78,17 @@ tr:hover {
     word-break: break-word;
 }
 
+.patch-note-section {
+    width: 100%;
+}
+
+.patch-note-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 12px 0;
+}
+
 .main-images {
     width: 100%;
     display: flex;

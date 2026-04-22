@@ -7,6 +7,7 @@
     <title><%= title %>111</title>
     <link rel="stylesheet" href="/public/css/common/layout.css">
     <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/game.css">
 </head>
 <body>
     <%- include('partials/header') %>
@@ -24,6 +25,39 @@
                     <% }); %>
                 </div>
             <% } %>
+
+            <% if (typeof patchNoteList !== 'undefined' && patchNoteList && patchNoteList.length > 0) { %>
+                <div class="patch-note-section">
+                    <h2 class="patch-note-title">패치 노트</h2>
+                    <div id="patchNoteList">
+                        <% patchNoteList.forEach(function(board) { %>
+                            <% const files = (board.boardFileList || []).filter(f => f.delYn !== 'Y'); %>
+                            <div class="defence-card" id="patch-card-<%= board.boardId %>" data-id="<%= board.boardId %>" onclick="togglePatchAccordion('<%= board.boardId %>')">
+                                <div class="card-header">
+                                    <div class="board-title-text"><%= board.boardTitle %></div>
+                                    <span class="chevron">▼</span>
+                                </div>
+                                <div class="accordion-body" id="patch-body-<%= board.boardId %>">
+                                    <div class="accordion-inner">
+                                        <div class="board-meta-row">
+                                            <span class="board-author"><%= board.inputMember ? (board.inputMember.memberNickname || board.inputMember.memberName) : '-' %></span>
+                                            <span class="board-date"><%= board.inputDt ? new Date(board.inputDt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '-' %></span>
+                                        </div>
+                                        <div class="board-content-text"><%= board.boardContent %></div>
+                                        <% if (files.length > 0) { %>
+                                            <div class="board-images">
+                                                <% files.forEach(function(f) { %>
+                                                    <img src="/public/image/board/<%= f.filePath %>" alt="첨부 이미지" class="board-attach-img">
+                                                <% }); %>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                </div>
+            <% } %>
         </div>
     </main>
 </body>
@@ -32,4 +66,21 @@
     <% if (user) { %>
         // location.href="/game/defence";
     <% } %>
+
+    function togglePatchAccordion(boardId) {
+        const card = document.getElementById('patch-card-' + boardId);
+        const body = document.getElementById('patch-body-' + boardId);
+        const isOpen = card.classList.contains('open');
+
+        document.querySelectorAll('.defence-card.open').forEach(function(c) {
+            c.classList.remove('open');
+            const b = document.getElementById('patch-body-' + c.dataset.id);
+            if (b) b.style.maxHeight = null;
+        });
+
+        if (isOpen) return;
+
+        card.classList.add('open');
+        body.style.maxHeight = body.scrollHeight + 'px';
+    }
 </script>

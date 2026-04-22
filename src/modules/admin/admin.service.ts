@@ -57,7 +57,7 @@ export class AdminService {
   }
 
   async deleteBoard(boardId: string): Promise<void> {
-    await this.boardRepository.update({ boardId }, { useYn: YesNo.N });
+    await this.boardRepository.update({ boardId }, { delYn: YesNo.Y });
   }
 
   // ========== 게시판 파일 관리 ==========
