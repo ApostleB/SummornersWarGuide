@@ -13,43 +13,7 @@
     <%- include('partials/header') %>
     <main class="main-content">
         <div class="main-container">
-            <% if (typeof patchNoteList !== 'undefined' && patchNoteList && patchNoteList.length > 0) { %>
-                <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
-                    <button type="button" class="notice-toggle-btn" id="patchNoteToggleBtn">
-                        <span class="notice-toggle-dot"></span>
-                        <span id="patchNoteToggleLabel">패치노트</span>
-                    </button>
-                </div>
-                <div class="patch-note-section" id="patchNoteSection">
-                    <div id="patchNoteList">
-                        <% patchNoteList.forEach(function(board) { %>
-                            <% const files = (board.boardFileList || []).filter(f => f.delYn !== 'Y'); %>
-                            <div class="defence-card" id="patch-card-<%= board.boardId %>" data-id="<%= board.boardId %>" onclick="togglePatchAccordion('<%= board.boardId %>')">
-                                <div class="card-header">
-                                    <div class="board-title-text"><%= board.boardTitle %></div>
-                                    <span class="chevron">▼</span>
-                                </div>
-                                <div class="accordion-body" id="patch-body-<%= board.boardId %>">
-                                    <div class="accordion-inner">
-                                        <div class="board-meta-row">
-                                            <span class="board-author"><%= board.inputMember ? (board.inputMember.memberNickname || board.inputMember.memberName) : '-' %></span>
-                                            <span class="board-date"><%= board.inputDt ? new Date(board.inputDt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '') : '-' %></span>
-                                        </div>
-                                        <div class="board-content-text"><%= board.boardContent %></div>
-                                        <% if (files.length > 0) { %>
-                                            <div class="board-images">
-                                                <% files.forEach(function(f) { %>
-                                                    <img src="/public/image/board/<%= f.filePath %>" alt="첨부 이미지" class="board-attach-img">
-                                                <% }); %>
-                                            </div>
-                                        <% } %>
-                                    </div>
-                                </div>
-                            </div>
-                        <% }); %>
-                    </div>
-                </div>
-            <% } %>
+            <div id="patchNoteWrapper" style="width:100%;"></div>
             <% if (content) { %>
                 <p class="main-text"><%= content %></p>
             <% } %>
@@ -62,48 +26,98 @@
                     <% }); %>
                 </div>
             <% } %>
-
         </div>
     </main>
 </body>
 </html>
 <script>
-    (function initPatchNoteToggle() {
-        const btn = document.getElementById('patchNoteToggleBtn');
-        if (!btn) return;
-        const section = document.getElementById('patchNoteSection');
-        const label = document.getElementById('patchNoteToggleLabel');
-        let isOn = localStorage.getItem('patchNoteToggle') !== 'off';
+    let patchNoteList = [];
+    let patchNoteIndex = 0;
+    let patchNoteOn = localStorage.getItem('patchNoteToggle') !== 'off';
 
-        function applyUI() {
-            btn.classList.toggle('on', isOn);
-            label.textContent = isOn ? 'RELEASE ON' : 'RELEASE OFF';
-            section.style.display = isOn ? '' : 'none';
+    async function fetchPatchNotes() {
+        try {
+            const response = await fetch('/api/game/patch-notes', { credentials: 'include' });
+            const data = await response.json();
+            patchNoteList = data.patchNoteList || [];
+            renderPatchNoteWrapper();
+        } catch (error) {
+            console.error('Failed to fetch patch notes:', error);
+        }
+    }
+
+    function renderPatchNoteWrapper() {
+        const wrapper = document.getElementById('patchNoteWrapper');
+        if (!patchNoteList.length) {
+            wrapper.innerHTML = '';
+            return;
         }
 
-        applyUI();
+        const toggleHtml = `
+            <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+                <button type="button" class="notice-toggle-btn${patchNoteOn ? ' on' : ''}" id="patchNoteToggleBtn">
+                    <span class="notice-toggle-dot"></span>
+                    <span id="patchNoteToggleLabel">${patchNoteOn ? '패치노트 ON' : '패치노트 OFF'}</span>
+                </button>
+            </div>
+        `;
 
-        btn.addEventListener('click', () => {
-            isOn = !isOn;
-            localStorage.setItem('patchNoteToggle', isOn ? 'on' : 'off');
-            applyUI();
+        const sectionHtml = `<div id="patchNoteSection" style="width:100%;${patchNoteOn ? '' : 'display:none;'}">
+            ${renderPatchNoteCard()}
+        </div>`;
+
+        wrapper.innerHTML = toggleHtml + sectionHtml;
+
+        document.getElementById('patchNoteToggleBtn').addEventListener('click', () => {
+            patchNoteOn = !patchNoteOn;
+            localStorage.setItem('patchNoteToggle', patchNoteOn ? 'on' : 'off');
+            document.getElementById('patchNoteSection').style.display = patchNoteOn ? '' : 'none';
+            const btn = document.getElementById('patchNoteToggleBtn');
+            btn.classList.toggle('on', patchNoteOn);
+            document.getElementById('patchNoteToggleLabel').textContent = patchNoteOn ? '패치노트 ON' : '패치노트 OFF';
         });
-    })();
-
-    function togglePatchAccordion(boardId) {
-        const card = document.getElementById('patch-card-' + boardId);
-        const body = document.getElementById('patch-body-' + boardId);
-        const isOpen = card.classList.contains('open');
-
-        document.querySelectorAll('.defence-card.open').forEach(function(c) {
-            c.classList.remove('open');
-            const b = document.getElementById('patch-body-' + c.dataset.id);
-            if (b) b.style.maxHeight = null;
-        });
-
-        if (isOpen) return;
-
-        card.classList.add('open');
-        body.style.maxHeight = body.scrollHeight + 'px';
     }
+
+    function renderPatchNoteCard() {
+        const note = patchNoteList[patchNoteIndex];
+        if (!note) return '';
+        const total = patchNoteList.length;
+        const files = note.boardFileList || [];
+        const dateStr = note.inputDt
+            ? new Date(note.inputDt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')
+            : '-';
+        const imagesHtml = files.length > 0
+            ? `<div class="board-images">${files.map(f => `<img src="/public/image/board/${f.filePath}" alt="첨부 이미지" class="board-attach-img">`).join('')}</div>`
+            : '';
+
+        return `
+            <div class="defence-card" style="width:100%;box-sizing:border-box;min-height:50vh;">
+                <div class="card-header" style="cursor:default;">
+                    <div class="board-title-text">${note.boardTitle}</div>
+                </div>
+                <div class="accordion-inner" style="padding:12px 16px;min-height:50vh;display:flex;flex-direction:column;">
+                    <div class="board-meta-row">
+                        <span class="board-author">${note.inputMember ? (note.inputMember.nickname || note.inputMember.name || '-') : '-'}</span>
+                        <span class="board-date">${dateStr}</span>
+                    </div>
+                    <div class="board-content-text">${(note.boardContent || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim()}</div>
+                    ${imagesHtml}
+                    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:auto;padding-top:12px;">
+                        <button class="slider-nav-btn" style="flex:unset;width:30%;padding:4px 0;" onclick="changePatchPage(-1)" ${patchNoteIndex === 0 ? 'disabled' : ''}>이전</button>
+                        <span style="font-size:12px;color:#888;">${patchNoteIndex + 1} / ${total}</span>
+                        <button class="slider-nav-btn" style="flex:unset;width:30%;padding:4px 0;" onclick="changePatchPage(1)" ${patchNoteIndex === total - 1 ? 'disabled' : ''}>다음</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function changePatchPage(direction) {
+        const newIndex = patchNoteIndex + direction;
+        if (newIndex < 0 || newIndex >= patchNoteList.length) return;
+        patchNoteIndex = newIndex;
+        document.getElementById('patchNoteSection').innerHTML = renderPatchNoteCard();
+    }
+
+    fetchPatchNotes();
 </script>

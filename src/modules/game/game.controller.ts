@@ -44,6 +44,12 @@ export class GameController {
     return { success: true, boardList };
   }
 
+  @Get("patch-notes")
+  async getPatchNoteList() {
+    const patchNoteList = await this.gameService.getPatchNoteList();
+    return { success: true, patchNoteList };
+  }
+
   // 몬스터 자동완성 검색
   @Get("monsters/search")
   async searchMonsters(@Query("keyword") keyword: string, @Req() req: Request) {

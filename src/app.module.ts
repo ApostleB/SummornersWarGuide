@@ -10,9 +10,6 @@ import { GameModule } from "./modules/game/game.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { DatabaseModule } from "./common/database/database.module";
 import { AuthMiddleware } from "./common/middlewares/auth.middleware";
-import { Board } from "./modules/board/entities/board.entity";
-import { BoardFile } from "./modules/board/entities/board-file.entity";
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,7 +22,6 @@ import { BoardFile } from "./modules/board/entities/board-file.entity";
     CodeModule,
     GameModule,
     AdminModule,
-    TypeOrmModule.forFeature([Board, BoardFile]),
   ],
   controllers: [AppController],
   providers: [AppService],

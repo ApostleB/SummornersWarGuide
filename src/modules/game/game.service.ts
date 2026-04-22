@@ -248,6 +248,31 @@ export class GameService {
     return { success: true, message: "등록 신청이 완료되었습니다." };
   }
 
+  async getPatchNoteList(): Promise<any[]> {
+    const boards = await this.boardRepository.find({
+      where: { boardType: "PATCH", useYn: YesNo.Y, delYn: YesNo.N },
+      relations: ["inputMember", "boardFileList"],
+      order: { boardOrder: "DESC", inputDt: "DESC" },
+    });
+    return boards.map((board) => ({
+      boardId: board.boardId,
+      boardTitle: board.boardTitle,
+      boardContent: board.boardContent,
+      boardOrder: board.boardOrder,
+      inputDt: board.inputDt,
+      inputMember: board.inputMember
+        ? {
+            name: board.inputMember.memberName,
+            nickname: board.inputMember.memberNickname,
+          }
+        : null,
+      boardFileList: (board.boardFileList || [])
+        .filter((f) => f.delYn === "N")
+        .sort((a, b) => a.fileOrd - b.fileOrd)
+        .map((f) => ({ fileId: f.fileId, filePath: f.filePath, fileOrd: f.fileOrd })),
+    }));
+  }
+
   async getBoardList(): Promise<any[]> {
     const boards = await this.boardRepository.find({
       where: { boardType: "NOTICE", useYn: YesNo.Y, delYn: YesNo.N },
