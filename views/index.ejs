@@ -14,8 +14,13 @@
     <main class="main-content">
         <div class="main-container">
             <% if (typeof patchNoteList !== 'undefined' && patchNoteList && patchNoteList.length > 0) { %>
-                <div class="patch-note-section">
-                    <h2 class="patch-note-title">패치 노트</h2>
+                <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+                    <button type="button" class="notice-toggle-btn" id="patchNoteToggleBtn">
+                        <span class="notice-toggle-dot"></span>
+                        <span id="patchNoteToggleLabel">패치노트</span>
+                    </button>
+                </div>
+                <div class="patch-note-section" id="patchNoteSection">
                     <div id="patchNoteList">
                         <% patchNoteList.forEach(function(board) { %>
                             <% const files = (board.boardFileList || []).filter(f => f.delYn !== 'Y'); %>
@@ -63,6 +68,28 @@
 </body>
 </html>
 <script>
+    (function initPatchNoteToggle() {
+        const btn = document.getElementById('patchNoteToggleBtn');
+        if (!btn) return;
+        const section = document.getElementById('patchNoteSection');
+        const label = document.getElementById('patchNoteToggleLabel');
+        let isOn = localStorage.getItem('patchNoteToggle') !== 'off';
+
+        function applyUI() {
+            btn.classList.toggle('on', isOn);
+            label.textContent = isOn ? 'RELEASE ON' : 'RELEASE OFF';
+            section.style.display = isOn ? '' : 'none';
+        }
+
+        applyUI();
+
+        btn.addEventListener('click', () => {
+            isOn = !isOn;
+            localStorage.setItem('patchNoteToggle', isOn ? 'on' : 'off');
+            applyUI();
+        });
+    })();
+
     function togglePatchAccordion(boardId) {
         const card = document.getElementById('patch-card-' + boardId);
         const body = document.getElementById('patch-body-' + boardId);
