@@ -13,19 +13,6 @@
     <%- include('partials/header') %>
     <main class="main-content">
         <div class="main-container">
-            <% if (content) { %>
-                <p class="main-text"><%= content %></p>
-            <% } %>
-            <% if (typeof images !== 'undefined' && images && images.length > 0) { %>
-                <div class="main-images">
-                    <% images.forEach(function(img) { %>
-                        <a href="/public/image/main/<%= img %>" target="_blank" rel="noopener">
-                            <img src="/public/image/main/<%= img %>" alt="메인 이미지">
-                        </a>
-                    <% }); %>
-                </div>
-            <% } %>
-
             <% if (typeof patchNoteList !== 'undefined' && patchNoteList && patchNoteList.length > 0) { %>
                 <div class="patch-note-section">
                     <h2 class="patch-note-title">패치 노트</h2>
@@ -58,6 +45,19 @@
                     </div>
                 </div>
             <% } %>
+            <% if (content) { %>
+                <p class="main-text"><%= content %></p>
+            <% } %>
+            <% if (typeof images !== 'undefined' && images && images.length > 0) { %>
+                <div class="main-images">
+                    <% images.forEach(function(img) { %>
+                        <a href="/public/image/main/<%= img %>" target="_blank" rel="noopener">
+                            <img src="/public/image/main/<%= img %>" alt="메인 이미지">
+                        </a>
+                    <% }); %>
+                </div>
+            <% } %>
+
         </div>
     </main>
 </body>
