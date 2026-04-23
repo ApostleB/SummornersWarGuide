@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 export enum YesNo {
   Y = "Y",
@@ -6,11 +6,12 @@ export enum YesNo {
 }
 
 @Entity("DTL_CD")
+@Unique(["code"])
 export class DtlCd {
   @PrimaryGeneratedColumn({ name: "IDX" })
   idx: number;
 
-  @Column({ name: "CODE", type: "varchar", length: 100 })
+  @Column({ name: "CODE", type: "varchar", length: 100, unique: true })
   code: string;
 
   @Column({ name: "GRP_CD", type: "varchar", length: 100 })
