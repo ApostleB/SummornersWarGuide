@@ -133,6 +133,16 @@ export class AuthService {
       throw new ForbiddenException("로그인이 허용되지 않은 계정입니다.");
     }
 
+    // 레벨 확인
+    if (member.memberLevel === 0) {
+      await this.createLog(member.memberId, LogType.LOGIN, "LEVEL_BLOCKED");
+      throw new ForbiddenException("관리자에게 문의해주세요.");
+    }
+    if (member.memberLevel === 9) {
+      await this.createLog(member.memberId, LogType.LOGIN, "LEVEL_INACTIVE");
+      throw new ForbiddenException("장기 미접속으로 계정이 제한되었습니다. 관리자에게 문의해주세요.");
+    }
+
     // 토큰 생성
     const tokens = await this.generateTokens(member);
 
