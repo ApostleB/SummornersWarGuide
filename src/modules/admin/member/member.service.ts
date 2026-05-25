@@ -33,7 +33,7 @@ export class AdminMemberService {
     await this.memberRepository.update(memberId, { status });
   }
 
-  async getAllMembers(): Promise<(Omit<Member, 'generateId'> & { lastRefreshDt: Date | null })[]> {
+  async getAllMembers(): Promise<(Omit<Member, 'generateId'> & { lastActivityDt: Date | null })[]> {
     const members = await this.memberRepository.find({
       where: {
         status: Not(
@@ -44,22 +44,21 @@ export class AdminMemberService {
     });
 
     const memberIds = members.map((m) => m.memberId);
-    if (memberIds.length === 0) return members.map((m) => ({ ...m, lastRefreshDt: null }));
+    if (memberIds.length === 0) return members.map((m) => ({ ...m, lastActivityDt: null }));
 
-    const refreshLogs = await this.memberLogRepository
+    const activityLogs = await this.memberLogRepository
       .createQueryBuilder("log")
       .select("log.memberId", "memberId")
-      .addSelect("MAX(log.inputDt)", "lastRefreshDt")
+      .addSelect("MAX(log.inputDt)", "lastActivityDt")
       .where("log.memberId IN (:...memberIds)", { memberIds })
-      .andWhere("log.logType = :logType", { logType: LogType.REFRESH })
       .groupBy("log.memberId")
       .getRawMany();
 
-    const refreshMap = new Map(refreshLogs.map((r) => [r.memberId, r.lastRefreshDt]));
+    const activityMap = new Map(activityLogs.map((r) => [r.memberId, r.lastActivityDt]));
 
     return members.map((m) => ({
       ...m,
-      lastRefreshDt: refreshMap.get(m.memberId) ?? null,
+      lastActivityDt: activityMap.get(m.memberId) ?? null,
     }));
   }
 
