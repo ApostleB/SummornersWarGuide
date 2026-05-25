@@ -32,6 +32,7 @@ const multerOptions = {
 };
 
 @UseGuards(JwtAuthGuard, RolesGuard)
+@MinLevel("50")
 @Controller("api/admin")
 export class AdminController {
   constructor(

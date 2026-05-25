@@ -10,7 +10,12 @@ import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import * as bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
-import { Member, MemberStatus, SignupMessage, MemberWithAuth } from "./entities/member.entity";
+import {
+  Member,
+  MemberStatus,
+  SignupMessage,
+  MemberWithAuth,
+} from "./entities/member.entity";
 import { MemberLog, LogType } from "./entities/member-log.entity";
 import { DtlCd, YesNo } from "../code/entities/dtl-cd.entity";
 import { SignupDto } from "./dto/signup.dto";
@@ -93,13 +98,20 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { name, password } = loginDto;
 
+    // 시스템 알림 공통 코드 일괄 조회
+    const systemAlerts = await this.dtlCdRepository.find({
+      where: { grpCd: "SYSTEM_ALERT", useYn: YesNo.Y, delYn: YesNo.N },
+    });
+    const alertMsg = (code: string, fallback: string) =>
+      systemAlerts.find((c) => c.code === code)?.codeValue ?? fallback;
+
     const member = await this.memberRepository.findOne({
       where: { memberName: name },
     });
 
     if (!member) {
       throw new UnauthorizedException(
-        "아이디 또는 비밀번호가 올바르지 않습니다.",
+        alertMsg("SYS001", "아이디 또는 비밀번호가 올바르지 않습니다."),
       );
     }
 
@@ -107,7 +119,10 @@ export class AuthService {
     if (member.loginCnt >= this.MAX_LOGIN_ATTEMPTS) {
       await this.createLog(member.memberId, LogType.LOGIN, "LOCKED");
       throw new ForbiddenException(
-        "로그인 시도 횟수를 초과하여 계정이 잠겼습니다. 관리자에게 문의하세요.",
+        alertMsg(
+          "SYS002",
+          "로그인 시도 횟수를 초과하여 계정이 잠겼습니다. 관리자에게 문의하세요.",
+        ),
       );
     }
 
@@ -120,7 +135,7 @@ export class AuthService {
       });
       await this.createLog(member.memberId, LogType.LOGIN, "FAILED");
       throw new UnauthorizedException(
-        "아이디 또는 비밀번호가 올바르지 않습니다.",
+        alertMsg("SYS001", "아이디 또는 비밀번호가 올바르지 않습니다."),
       );
     }
 
@@ -130,17 +145,26 @@ export class AuthService {
       member.status !== MemberStatus.CONFIRM
     ) {
       await this.createLog(member.memberId, LogType.LOGIN, "STATUS_INVALID");
-      throw new ForbiddenException("로그인이 허용되지 않은 계정입니다.");
+      throw new ForbiddenException(
+        alertMsg("SYS003", "로그인이 허용되지 않은 계정입니다."),
+      );
     }
 
     // 레벨 확인
     if (member.memberLevel === 0) {
       await this.createLog(member.memberId, LogType.LOGIN, "LEVEL_BLOCKED");
-      throw new ForbiddenException("관리자에게 문의해주세요.");
+      throw new ForbiddenException(
+        alertMsg("SYS004", "관리자에게 문의해주세요."),
+      );
     }
     if (member.memberLevel === 9) {
       await this.createLog(member.memberId, LogType.LOGIN, "LEVEL_INACTIVE");
-      throw new ForbiddenException("장기 미접속으로 계정이 제한되었습니다. 관리자에게 문의해주세요.");
+      throw new ForbiddenException(
+        alertMsg(
+          "SYS005",
+          "장기 미접속으로 계정이 제한되었습니다. 관리자에게 문의해주세요.",
+        ),
+      );
     }
 
     // 토큰 생성
@@ -189,7 +213,10 @@ export class AuthService {
     }
 
     // 현재 비밀번호 확인
-    const isPasswordValid = await bcrypt.compare(currentPassword, member.memberPw);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      member.memberPw,
+    );
     if (!isPasswordValid) {
       throw new BadRequestException("현재 비밀번호가 일치하지 않습니다.");
     }

@@ -6,6 +6,7 @@ import {
   Req,
   Res,
   HttpStatus,
+  UseGuards,
 } from "@nestjs/common";
 import { Response, Request } from "express";
 import { AuthService } from "./auth.service";
@@ -14,24 +15,22 @@ import { LoginDto } from "./dto/login.dto";
 import { ChangePasswordDto } from "./dto/change-password.dto";
 import { UpdateNicknameDto } from "./dto/update-nickname.dto";
 import { AuthUser } from "../../common/middlewares/auth.middleware";
+import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { MinLevel } from "./decorators/min-level.decorator";
 
 @Controller("api/auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @UseGuards(JwtAuthGuard)
+  @MinLevel("10")
   @Post("update-nickname")
   async updateNickname(
     @Req() req: Request,
     @Body() updateNicknameDto: UpdateNicknameDto,
     @Res() res: Response,
   ) {
-    const user = (req as any).user as AuthUser | undefined;
-    if (!user) {
-      return res
-        .status(HttpStatus.UNAUTHORIZED)
-        .json({ message: "로그인이 필요합니다." });
-    }
-
+    const user = (req as any).user as AuthUser;
     const result = await this.authService.updateNickname(
       user.memberId,
       updateNicknameDto,
@@ -39,19 +38,15 @@ export class AuthController {
     return res.status(HttpStatus.OK).json(result);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @MinLevel("10")
   @Post("change-password")
   async changePassword(
     @Req() req: Request,
     @Body() changePasswordDto: ChangePasswordDto,
     @Res() res: Response,
   ) {
-    const user = (req as any).user as AuthUser | undefined;
-    if (!user) {
-      return res
-        .status(HttpStatus.UNAUTHORIZED)
-        .json({ message: "로그인이 필요합니다." });
-    }
-
+    const user = (req as any).user as AuthUser;
     const result = await this.authService.changePassword(
       user.memberId,
       changePasswordDto,
@@ -67,6 +62,7 @@ export class AuthController {
 
   @Post("login")
   async login(@Body() loginDto: LoginDto, @Res() res: Response) {
+
     const result = await this.authService.login(loginDto);
 
     // httpOnly 쿠키에 토큰 저장
