@@ -8,6 +8,7 @@ import { AuthViewController } from "./auth-view.controller";
 import { MypageController } from "./mypage.controller";
 import { AuthService } from "./auth.service";
 import { JwtStrategy } from "./strategies/jwt.strategy";
+import { RolesGuard } from "./guards/roles.guard";
 import { Member } from "./entities/member.entity";
 import { MemberLog } from "./entities/member-log.entity";
 import { DtlCd } from "../code/entities/dtl-cd.entity";
@@ -28,7 +29,7 @@ import { DtlCd } from "../code/entities/dtl-cd.entity";
     }),
   ],
   controllers: [AuthController, AuthViewController, MypageController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, RolesGuard],
   exports: [AuthService, JwtStrategy, PassportModule],
 })
 export class AuthModule {}

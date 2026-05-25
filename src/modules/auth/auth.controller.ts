@@ -16,13 +16,14 @@ import { ChangePasswordDto } from "./dto/change-password.dto";
 import { UpdateNicknameDto } from "./dto/update-nickname.dto";
 import { AuthUser } from "../../common/middlewares/auth.middleware";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { RolesGuard } from "./guards/roles.guard";
 import { MinLevel } from "./decorators/min-level.decorator";
 
 @Controller("api/auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @MinLevel("10")
   @Post("update-nickname")
   async updateNickname(
@@ -38,7 +39,7 @@ export class AuthController {
     return res.status(HttpStatus.OK).json(result);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @MinLevel("10")
   @Post("change-password")
   async changePassword(

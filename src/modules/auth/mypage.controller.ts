@@ -1,15 +1,16 @@
 import { Controller, Get, Render, Req, UseGuards } from "@nestjs/common";
 import { Request } from "express";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { RolesGuard } from "./guards/roles.guard";
 import { AuthService } from "./auth.service";
 import { MinLevel } from "./decorators/min-level.decorator";
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @MinLevel("10")
 @Controller("mypage")
 export class MypageController {
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   @Render("mypage/index")
   async mypagePage(@Req() req: Request) {

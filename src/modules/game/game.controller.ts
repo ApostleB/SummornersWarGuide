@@ -12,12 +12,13 @@ import {
 import { Response, Request } from "express";
 import { GameService } from "./game.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../auth/guards/roles.guard";
 import { AuthUser } from "../../common/middlewares/auth.middleware";
 import { MinLevel } from "../auth/decorators/min-level.decorator";
 
-@UseGuards(JwtAuthGuard)
-@Controller("api/game")
+@UseGuards(JwtAuthGuard, RolesGuard)
 @MinLevel("10")
+@Controller("api/game")
 export class GameController {
   constructor(private readonly gameService: GameService) {}
 

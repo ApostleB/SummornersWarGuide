@@ -9,12 +9,13 @@ import { DeckLog } from "./entities/deck-log.entity";
 import { DtlCd } from "../code/entities/dtl-cd.entity";
 import { Board } from "../board/entities/board.entity";
 import { BoardFile } from "../board/entities/board-file.entity";
+import { RolesGuard } from "../auth/guards/roles.guard";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Defence, Attack, DeckLog, DtlCd, Board, BoardFile]),
   ],
   controllers: [GameController, GameViewController],
-  providers: [GameService],
+  providers: [GameService, RolesGuard],
 })
 export class GameModule {}

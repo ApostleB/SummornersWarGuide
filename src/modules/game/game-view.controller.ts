@@ -1,12 +1,13 @@
 import { Controller, Get, Render, Req, UseGuards } from "@nestjs/common";
 import { Request } from "express";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../auth/guards/roles.guard";
 import { GameService } from "./game.service";
 import { MinLevel } from "../auth/decorators/min-level.decorator";
 
-@UseGuards(JwtAuthGuard)
-@Controller("game")
+@UseGuards(JwtAuthGuard, RolesGuard)
 @MinLevel("10")
+@Controller("game")
 export class GameViewController {
   constructor(private readonly gameService: GameService) {}
 
